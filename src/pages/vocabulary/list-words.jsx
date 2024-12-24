@@ -17,6 +17,8 @@ function ListWords() {
             selectedWord={selectedWord}
             setSelectedWord={setSelectedWord}
             selectButton={true}
+            showTranslationsColumn={true}
+            showSentencesColumn={true}
           />
         </MainCard>
       </Grid>

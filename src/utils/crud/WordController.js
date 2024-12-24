@@ -1,7 +1,7 @@
 import axios from 'utils/axios';
 
 export const getWords = async ({ page = 1, perPage = 10 }) => {
-    let apiEndpoint = '/api/words';
+    let apiEndpoint = '/api/user/words';
     try {
         const response = await axios.get(apiEndpoint, {
             params: {

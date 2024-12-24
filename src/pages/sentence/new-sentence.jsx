@@ -22,6 +22,9 @@ function NewSentence() {
                         selectedWord={selectedWord}
                         setSelectedWord={setSelectedWord}
                         selectButton={true}
+                        
+            showTranslationsColumn={false}
+            showSentencesColumn={true}
                     />
                 </MainCard>
             </Grid>

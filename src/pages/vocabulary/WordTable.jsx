@@ -7,12 +7,10 @@ import { getWords } from 'utils/crud/WordController';
 import axios from 'utils/axios';
 import queryClient from 'utils/queryClient';
 
-function WordTable({ selectedWord, setSelectedWord, selectButton = false, editButton = false, deleteButton = false }) {
+function WordTable({ selectedWord, setSelectedWord, selectButton = false, editButton = false, deleteButton = false, showTranslationsColumn = false, showSentencesColumn = false }) {
     const [page, setPage] = useState(1);
     const [open, setOpen] = useState(false);
     const [wordToDelete, setWordToDelete] = useState(null);
-
-
 
     const { data: words, isLoading: isWordsLoading, isError: isWordsError } = useQuery({
         queryKey: ['words'],
@@ -96,7 +94,8 @@ function WordTable({ selectedWord, setSelectedWord, selectButton = false, editBu
                         <TableRow>
                             <TableCell>Language</TableCell>
                             <TableCell>Word</TableCell>
-                            <TableCell>Translations</TableCell>
+                            {showTranslationsColumn && <TableCell>Translations</TableCell>}
+                            {showSentencesColumn && <TableCell>Sentences</TableCell>}
                             <TableCell align="center">Actions</TableCell>
                         </TableRow>
                     </TableHead>
@@ -108,24 +107,31 @@ function WordTable({ selectedWord, setSelectedWord, selectButton = false, editBu
                                         <Link color="secondary">{word.language.name}</Link>
                                     </TableCell>
                                     <TableCell>{word.word}</TableCell>
-                                    <TableCell>
-                                        <WordStatus status={word.translations.length > 0 ? 0 : 1} />
-                                    </TableCell>
+                                    {
+                                        showTranslationsColumn && <TableCell>
+                                            {word?.translations?.length}
+                                        </TableCell>
+                                    }
+                                    {
+                                        showSentencesColumn && <TableCell>
+                                            {word?.sentences?.length}
+                                        </TableCell>
+                                    }
                                     <TableCell align="center">
                                         {
-                                            editButton && 
+                                            editButton &&
                                             <IconButton color="primary" aria-label="edit" onClick={() => setSelectedWord(word)}>
                                                 <EditOutlined />
                                             </IconButton>
                                         }
                                         {
-                                            deleteButton && 
+                                            deleteButton &&
                                             <IconButton color="error" aria-label="delete" onClick={() => handleOpenDialog(word.id)}>
                                                 <DeleteOutlined />
                                             </IconButton>
                                         }
                                         {
-                                            selectButton && 
+                                            selectButton &&
                                             <IconButton color="primary" aria-label="select" onClick={() => setSelectedWord(word)}>
                                                 <FullscreenOutlined />
                                             </IconButton>
