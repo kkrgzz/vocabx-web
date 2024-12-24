@@ -8,17 +8,22 @@ import ScrollTop from 'components/ScrollTop';
 
 // auth-provider
 import { JWTProvider as AuthProvider } from 'contexts/JWTContext';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+import queryClient from 'utils/queryClient';
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
 export default function App() {
   return (
     <ThemeCustomization>
       <ScrollTop>
-        <AuthProvider>
-          <>
-            <RouterProvider router={router} />
-          </>
-        </AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <>
+              <RouterProvider router={router} />
+            </>
+          </AuthProvider>
+        </QueryClientProvider>
       </ScrollTop>
     </ThemeCustomization>
   );

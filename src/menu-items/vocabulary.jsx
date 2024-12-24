@@ -1,9 +1,10 @@
 // assets
-import { LoginOutlined, PlusCircleOutlined, ProfileOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { HighlightOutlined, LoginOutlined, PlusCircleOutlined, ProfileOutlined, UnorderedListOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
   PlusCircleOutlined,
+  HighlightOutlined,
   UnorderedListOutlined
 };
 
@@ -19,14 +20,21 @@ const vocabulary = {
       id: 'new-word',
       title: 'New Word',
       type: 'item',
-      url: '/new-word',
+      url: '/word/new',
       icon: icons.PlusCircleOutlined,
     },
     {
-      id: 'list-word',
-      title: 'Word List',
+      id: 'edit-word',
+      title: 'Edit Words',
       type: 'item',
-      url: '/list-word',
+      url: '/word/edit',
+      icon: icons.HighlightOutlined,
+    },
+    {
+      id: 'list-word',
+      title: 'List Words',
+      type: 'item',
+      url: '/word/list',
       icon: icons.UnorderedListOutlined,
     },
   ]

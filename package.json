@@ -31,6 +31,7 @@
     "@mui/material": "^5.15.12",
     "@mui/system": "^5.15.12",
     "@svgr/webpack": "^8.1.0",
+    "@tanstack/react-query": "^5.62.8",
     "@vitejs/plugin-react": "^4.2.1",
     "apexcharts": "^3.49.0",
     "axios": "^1.7.9",

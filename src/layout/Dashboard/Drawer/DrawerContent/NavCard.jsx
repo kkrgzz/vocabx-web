@@ -22,12 +22,12 @@ export default function NavCard() {
         <Stack alignItems="center">
           <Typography variant="h5">VocabX</Typography>
           <Typography variant="h6" color="secondary">
-            
+            A text about something
           </Typography>
         </Stack>
         <AnimateButton>
           <Button component={Link} target="_blank" href="#" variant="contained" color="success" size="small">
-            Salut!
+            Hello!
           </Button>
         </AnimateButton>
       </Stack>
