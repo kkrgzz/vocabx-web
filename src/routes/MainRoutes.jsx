@@ -13,6 +13,10 @@ const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 
+// Quick Menu Pages
+const QuickWord = Loadable(lazy(() => import('pages/quick-menu/quick-word')));
+const QuickWordList = Loadable(lazy(() => import('pages/quick-menu/quick-word-list')));
+
 // Word pages
 const NewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
 const EditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
@@ -37,6 +41,19 @@ const MainRoutes = {
     {
       path: 'color',
       element: <Color />
+    },
+    {
+      path: 'quick-menu',
+      children: [
+        {
+          path: 'new-word',
+          element: <QuickWord />
+        },
+        {
+          path: 'word-list',
+          element: <QuickWordList />
+        }
+      ]
     },
     {
       path: 'dashboard',
