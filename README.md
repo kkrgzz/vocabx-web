@@ -41,6 +41,8 @@ d- **Routing**: React Router
 
 ### Installation
 
+I suggest you to use Yarn instead of npn package manager.
+
 1. Clone the repository:
     
    ```bash
