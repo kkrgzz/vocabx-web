@@ -12,7 +12,8 @@ This application is based on the [Mantis Free React Material UI Dashboard Templa
 
 ## To-Do & Roadmap
 - [ ] Store the user's mother tongue and target language for better practice.
-- [ ] Add word categories and filters.
+- [ ] Create a user-owned page that allows the user to modify their own information.
+- [ ] Categorize words by languages and filter them.
 - [ ] Export and import word lists.
 - [ ] Improve sentence practice system.
 - [ ] Reorganization of the pages.
