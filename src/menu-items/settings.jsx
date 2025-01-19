@@ -1,9 +1,9 @@
 // assets
-import { RadiusSettingOutlined } from '@ant-design/icons';
+import { UserOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
-  RadiusSettingOutlined,
+  UserOutlined,
 };
 
 // ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
@@ -14,12 +14,13 @@ const pages = {
   type: 'group',
   children: [
     {
-      id: 'preferences',
-      title: 'Preferences',
+      id: 'profile',
+      title: 'Profile',
       type: 'item',
-      url: 'settings/preferences',
-      icon: icons.RadiusSettingOutlined,
-    },
+      url: '/settings/profile',
+      icon: icons.UserOutlined,
+      breadcrumbs: true
+    }
   ]
 };
 

@@ -12,7 +12,7 @@ import quick_menu from './quick-menu';
 
 const menuItems = {
   //items: [dashboard, pages, vocabulary, utilities, support]
-  items: [quick_menu, dashboard, vocabulary, sentence]
+  items: [quick_menu, dashboard, vocabulary, sentence, settings]
 };
 
 export default menuItems;

@@ -13,6 +13,9 @@ const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 
+// User Pages
+const ProfilePage = Loadable(lazy(() => import('pages/user/profile')));
+
 // Quick Menu Pages
 const QuickWord = Loadable(lazy(() => import('pages/quick-menu/quick-word')));
 const QuickWordList = Loadable(lazy(() => import('pages/quick-menu/quick-word-list')));
@@ -96,6 +99,10 @@ const MainRoutes = {
         {
           path: 'preferences',
           element: <Preferences />
+        },
+        {
+          path: 'profile',
+          element: <ProfilePage />
         }
       ]
     },
