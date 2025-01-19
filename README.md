@@ -11,7 +11,7 @@ This application is based on the [Mantis Free React Material UI Dashboard Templa
 - **Pagination**: Efficiently handle large lists of words and sentences.
 
 ## To-Do & Roadmap
-- [ ] Store the user's mother tongue and target language for better practice.
+- [x] Store the user's mother tongue and target language for better practice.
 - [ ] Create a user-owned page that allows the user to modify their own information.
 - [ ] Categorize words by languages and filter them.
 - [ ] Export and import word lists.
