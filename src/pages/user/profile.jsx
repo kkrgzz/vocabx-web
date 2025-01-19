@@ -5,6 +5,7 @@ import useAuth from 'hooks/useAuth';
 import React, { useEffect, useState } from 'react'
 import axios from 'utils/axios';
 import { getLanguages } from 'utils/crud/LanguageController';
+import { getUserInformation } from 'utils/crud/UserController';
 
 function Profile() {
 
@@ -15,15 +16,6 @@ function Profile() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
 
-  async function fetchUserInformation() {
-    try {
-      const response = await axios.get('/api/account/me');
-      return response?.data?.user || [];
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      return [];
-    }
-  }
 
   async function fetchLanguages() {
     try {
@@ -75,7 +67,8 @@ function Profile() {
   useEffect(() => {
 
     async function getUser() {
-      setUser(await fetchUserInformation());
+      const tempUser = await getUserInformation();
+      setUser(tempUser?.user);
     }
     getUser();
 
@@ -86,7 +79,8 @@ function Profile() {
 
   useEffect(() => {
     async function getUser() {
-      setUser(await fetchUserInformation());
+      const tempUser = await getUserInformation();
+      setUser(tempUser?.user);
     }
     getUser();
 

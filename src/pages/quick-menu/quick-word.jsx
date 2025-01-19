@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Divider, FormControl, InputLabel, MenuItem, Select, Snackbar, TextField, Typography, CircularProgress } from '@mui/material';
-import axios from 'utils/axios';
+import { Box, Button, FormControl, MenuItem, Select, TextField, Typography, CircularProgress, Snackbar } from '@mui/material';
 import MuiAlert from '@mui/material/Alert';
+import axios from 'utils/axios';
+import { getUserInformation } from 'utils/crud/UserController';
 
 const getLanguages = async () => {
   try {
@@ -21,24 +22,31 @@ function QuickWord() {
   const [languages, setLanguages] = useState([]);
   const [mainLanguage, setMainLanguage] = useState('');
   const [mainWord, setMainWord] = useState('');
-  const [isWordSaving, setIsWordSaving] = useState(false);
   const [translationLanguage, setTranslationLanguage] = useState('');
   const [translationWord, setTranslationWord] = useState('');
+  const [isWordSaving, setIsWordSaving] = useState(false);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const mainWordInputRef = useRef(null);
 
   useEffect(() => {
-    const fetchLanguages = async () => {
-      const languagesData = await getLanguages();
-      setLanguages(languagesData);
-      setMainLanguage('en'); // Set default value after languages are fetched
-      setTranslationLanguage('tr'); // Set default value after languages are fetched
+    const fetchInitialData = async () => {
+      try {
+        const [languages, user] = await Promise.all([getLanguages(), getUserInformation()]);
+        setLanguages(languages);
+        console.log(user.user);
+        setMainLanguage(user.user[0]?.target_language || languages[0]?.code || '');
+        setTranslationLanguage(user.user[0]?.mother_language || languages[0]?.code || '');
+        if (mainWordInputRef?.current) {
+          mainWordInputRef.current.focus();
+        }
+      } catch (error) {
+        console.error('Error fetching initial data:', error);
+      }
     };
 
-    fetchLanguages();
-    mainWordInputRef.current.focus();
+    fetchInitialData();
   }, []);
 
   const handleMainLanguageChange = (event) => {
@@ -59,40 +67,38 @@ function QuickWord() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setIsWordSaving(true);
+    if (!mainWord || !translationWord) return;
 
-    if (mainWord && translationWord) {
-      try {
-        const response = await axios.post('/api/words', {
-          language_code: mainLanguage,
-          word: mainWord,
-          translations: [
-            {
-              language_code: translationLanguage,
-              translation: translationWord,
-            },
-          ],
-        });
-        setSnackbarMessage('Word added successfully');
-        setSnackbarSeverity('success');
-        setOpenSnackbar(true);
-        // Reset form after successful submission
-        setMainWord('');
-        setTranslationWord('');
-        setIsWordSaving(false);
-        mainWordInputRef.current.focus();
-      } catch (error) {
-        setSnackbarMessage('Error adding word');
-        setSnackbarSeverity('error');
-        setOpenSnackbar(true);
-        setIsWordSaving(false);
-        console.error('Error adding word:', error);
-      }
+    setIsWordSaving(true);
+    try {
+      await axios.post('/api/words', {
+        language_code: mainLanguage,
+        word: mainWord,
+        translations: [
+          {
+            language_code: translationLanguage,
+            translation: translationWord
+          }
+        ]
+      });
+      setSnackbarMessage('Word added successfully');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setMainWord('');
+      setTranslationWord('');
+      mainWordInputRef.current?.focus();
+    } catch (error) {
+      setSnackbarMessage('Error adding word');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      console.error(error);
+    } finally {
+      setIsWordSaving(false);
     }
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === 'Enter' && mainWord && translationWord) {
+    if (event.key === 'Enter') {
       handleSubmit(event);
     }
   };
@@ -107,7 +113,6 @@ function QuickWord() {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundImage: 'url(https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/70c3b9b4-0a31-4edc-bc93-71c40f60d22d/didsiyz-eea5c19f-b84f-433a-8128-136dee9c1778.jpg/v1/fill/w_1280,h_720,q_75,strp/japan_winter_wallpaper__4__by_belindabindi_didsiyz-fullview.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzcwYzNiOWI0LTBhMzEtNGVkYy1iYzkzLTcxYzQwZjYwZDIyZFwvZGlkc2l5ei1lZWE1YzE5Zi1iODRmLTQzM2EtODEyOC0xMzZkZWU5YzE3NzguanBnIiwiaGVpZ2h0IjoiPD03MjAiLCJ3aWR0aCI6Ijw9MTI4MCJ9XV0sImF1ZCI6WyJ1cm46c2VydmljZTppbWFnZS53YXRlcm1hcmsiXSwid21rIjp7InBhdGgiOiJcL3dtXC83MGMzYjliNC0wYTMxLTRlZGMtYmM5My03MWM0MGY2MGQyMmRcL2JlbGluZGFiaW5kaS00LnBuZyIsIm9wYWNpdHkiOjk1LCJwcm9wb3J0aW9ucyI6MC40NSwiZ3Jhdml0eSI6ImNlbnRlciJ9fQ.ZkFsbe5PQ2sLsw3qj1dZYy5pXAhJTvCcE5oMTvXKPWo)',
         height: { xs: 'auto', sm: '100%' },
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -127,7 +132,7 @@ function QuickWord() {
           p: 4,
           backgroundColor: 'rgba(255, 255, 255, 0.7)',
           backdropFilter: 'blur(10px)',
-          borderRadius: 2,
+          borderRadius: 2
         }}
       >
         <Typography variant="h5" gutterBottom>
@@ -136,10 +141,10 @@ function QuickWord() {
         <FormControl fullWidth>
           <Select
             displayEmpty
-            value={mainLanguage}
+            value={mainLanguage || ''}
             onChange={handleMainLanguageChange}
           >
-            {languages.map((language) => (
+            {languages.length > 0 && languages.map((language) => (
               <MenuItem key={language.code} value={language.code}>
                 {language.name}
               </MenuItem>
@@ -159,10 +164,10 @@ function QuickWord() {
         <FormControl fullWidth>
           <Select
             displayEmpty
-            value={translationLanguage}
+            value={translationLanguage || ''}
             onChange={handleTranslationLanguageChange}
           >
-            {languages.map((language) => (
+            {languages.length > 0 && languages.map((language) => (
               <MenuItem key={language.code} value={language.code}>
                 {language.name}
               </MenuItem>
