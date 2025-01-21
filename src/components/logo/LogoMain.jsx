@@ -1,6 +1,6 @@
 // material-ui
 import { useTheme } from '@mui/material/styles';
-
+import logo from 'assets/images/icons/vocabx.svg';
 /**
  * if you want to use image instead of <svg> uncomment following.
  *
@@ -19,9 +19,12 @@ const Logo = () => {
     /**
      * if you want to use image instead of svg uncomment following, and comment out <svg> element.
      *
-     * <img src={logo} alt="Mantis" width="100" />
+     * <img src={logo} alt="VocabX" width="100" />
      *
      */
+
+    <img src={logo} alt="VocabX" width="100" />
+    /*
     <>
       <svg width="118" height="35" viewBox="0 0 118 35" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path
@@ -57,6 +60,7 @@ const Logo = () => {
         </defs>
       </svg>
     </>
+    */
   );
 };
 
