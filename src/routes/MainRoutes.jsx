@@ -20,10 +20,13 @@ const ProfilePage = Loadable(lazy(() => import('pages/user/profile')));
 const QuickWord = Loadable(lazy(() => import('pages/quick-menu/quick-word')));
 const QuickWordList = Loadable(lazy(() => import('pages/quick-menu/quick-word-list')));
 
-// Word pages
-const NewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
+// Word pages V1
+//const NewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
 const EditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
 const ListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
+
+// Word Pages V2
+const NewWordPage = Loadable(lazy(() => import('pages/language/word/index')));
 
 // Sentence pages
 const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence')));
