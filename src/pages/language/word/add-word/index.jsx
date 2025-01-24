@@ -1,7 +1,7 @@
 import React from 'react'
-import AddWord from './word-content/add-word'
+import AddWord from './add-word-content/add-word'
 import { Grid } from '@mui/material'
-import LastWords from './word-content/last-words'
+import LastWords from './add-word-content/last-words'
 
 function Word() {
   return (

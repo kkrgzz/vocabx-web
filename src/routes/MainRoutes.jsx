@@ -23,10 +23,11 @@ const QuickWordList = Loadable(lazy(() => import('pages/quick-menu/quick-word-li
 // Word pages V1
 //const NewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
 const EditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
-const ListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
+//const ListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
 
 // Word Pages V2
-const NewWordPage = Loadable(lazy(() => import('pages/language/word/index')));
+const NewWordPage = Loadable(lazy(() => import('pages/language/word/add-word/index')));
+const NewWordListPage = Loadable(lazy(() => import('pages/language/word/list-word/index')));
 
 // Sentence pages
 const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence')));
@@ -83,7 +84,7 @@ const MainRoutes = {
         },
         {
           path: 'list',
-          element: <ListWordPage />
+          element: <NewWordListPage />
         }
       ]
     },
