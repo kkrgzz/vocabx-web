@@ -38,7 +38,7 @@ function LastWords() {
                         <CircularProgress />
                     )}
 
-                {!isWordsLoading && (
+                {!isWordsLoading && (words.length >= colors.length) && (
                     <Grid item xs={12} display='flex' justifyContent='end'>
                         <Button onClick={() => handleMoreWordsButton()} endIcon={<RightCircleOutlined />}>More</Button>
                     </Grid>
