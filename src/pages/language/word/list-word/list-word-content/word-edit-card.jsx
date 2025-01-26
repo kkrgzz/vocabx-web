@@ -68,7 +68,7 @@ function WordEditCard({
                 <div key={index}>
                     <TextField
                         fullWidth
-                        label={`${translation.language.name || 'Translation'}}`}
+                        label={`${translation.language.name || 'Translation'}`}
                         value={translation.translation || ''}
                         onChange={(e) => {
                             const newTranslations = [...editedWord.translations];
