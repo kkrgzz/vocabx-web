@@ -21,9 +21,9 @@ const QuickWord = Loadable(lazy(() => import('pages/quick-menu/quick-word')));
 const QuickWordList = Loadable(lazy(() => import('pages/quick-menu/quick-word-list')));
 
 // Word pages V1
-//const NewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
-const EditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
-//const ListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
+const OldNewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')));
+const OldEditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
+const OldListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
 
 // Word Pages V2
 const NewWordPage = Loadable(lazy(() => import('pages/language/word/add-word/index')));
@@ -31,6 +31,9 @@ const NewWordListPage = Loadable(lazy(() => import('pages/language/word/list-wor
 
 // Sentence pages
 const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence')));
+
+// Sentence Pages V2
+const SentenceEditorPage = Loadable(lazy(()=>import('pages/language/sentence/index')));
 
 // Settings pages
 const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
@@ -78,14 +81,26 @@ const MainRoutes = {
           path: 'new',
           element: <NewWordPage />
         },
-        {
-          path: 'edit',
-          element: <EditWordPage />
-        },
+        // {
+        //   path: 'edit',
+        //   element: <EditWordPage />
+        // },
         {
           path: 'list',
           element: <NewWordListPage />
-        }
+        },
+        {
+          path: 'old-new',
+          element: <OldNewWordPage />
+        },
+        {
+          path: 'old-edit',
+          element: <OldEditWordPage />
+        },
+        {
+          path: 'old-list',
+          element: <OldListWordPage />
+        },
       ]
     },
     {
@@ -94,6 +109,10 @@ const MainRoutes = {
         {
           path: 'new',
           element: <NewSentencePage />
+        },
+        {
+          path: 'editor',
+          element: <SentenceEditorPage />
         }
       ]
     },
