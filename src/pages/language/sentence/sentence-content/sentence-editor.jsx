@@ -1,18 +1,19 @@
 import { CheckOutlined, CloseOutlined, DeleteOutlined, DownOutlined, EditOutlined } from '@ant-design/icons';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
-import MainCard from 'components/MainCard';
 import { getWords } from 'utils/crud/WordController';
 import axios from 'utils/axios';
+import queryClient from 'utils/queryClient';
 
 function SentenceEditor() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [page, setPage] = useState(1);
 
     const { data: wordsData, isLoading, isError } = useQuery({
         queryKey: ['words'],
-        queryFn: async () => getWords({ page: 1, perPage: 20, sort: 'desc' })
+        queryFn: async () => getWords({ page: page, perPage: 20, sort: 'desc' })
     });
 
     const updateSentenceMutation = useMutation({
@@ -47,10 +48,15 @@ function SentenceEditor() {
     const [newSentence, setNewSentence] = useState({ word_id: null, text: '' });
 
     useEffect(() => {
+        queryClient.invalidateQueries(['words']);
+    }, [page]);
+
+    useEffect(() => {
         if (wordsData?.data) {
             setLocalWords(wordsData.data);
         }
     }, [wordsData]);
+
 
     const handleAccordionChange = (word_id) => (_, isExpanded) => {
         setExpanded(isExpanded ? word_id : null);
@@ -128,11 +134,18 @@ function SentenceEditor() {
         setNewSentence({ word_id: null, text: '' });
     };
 
+    const handlePageChange = (event, value) => {
+        setPage(value);
+    }
+
     if (isLoading) return <CircularProgress />;
     if (isError) return <div>Error loading words</div>;
 
     return (
         <>
+            <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
+                <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+            </Box>
             {localWords.map(word => (
                 <Accordion
                     key={word.id}
@@ -229,6 +242,10 @@ function SentenceEditor() {
                     </AccordionDetails>
                 </Accordion>
             ))}
+
+            <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
+                <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+            </Box>
         </>
     );
 }
