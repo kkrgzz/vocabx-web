@@ -23,7 +23,6 @@ import WordSentencesCard from './word-sentences-card';
 import Toast from 'components/Toast';
 
 function WordList() {
-
   const [selectedWord, setSelectedWord] = useState(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -34,13 +33,22 @@ function WordList() {
     message: '',
     severity: 'success'
   });
-  const [tabValue, setTabValue] = useState('1');
+  // Separate state for language tabs and dialog tabs
+  const [languageTabValue, setLanguageTabValue] = useState('1');
+  const [dialogTabValue, setDialogTabValue] = useState('1');
   const [page, setPage] = useState(1);
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
   const perPage = 10;
 
+  // Modified query to include language filter
   const { data: words, isLoading, error } = useQuery({
-    queryKey: ['words'],
-    queryFn: async () => getWords({ page: page, perPage: perPage, sort: 'desc' })
+    queryKey: ['words', page, selectedLanguage],
+    queryFn: async () => getWords({
+      page: page,
+      perPage: perPage,
+      sort: 'desc',
+      language_code: selectedLanguage
+    })
   });
 
   const { data: languages, isLoading: isLanguagesLoading } = useQuery({
@@ -49,12 +57,22 @@ function WordList() {
   });
 
   useEffect(() => {
-    queryClient.invalidateQueries(['words']);
-  }, [page]);
+    if (!isLanguagesLoading && languages) {
+      const index = parseInt(languageTabValue) - 2;
+      const newLanguage = index >= 0 ? languages[index]?.code : null;
+      setSelectedLanguage(newLanguage);
+    }
+  }, [languageTabValue, isLanguagesLoading, languages]);
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  }
+  const handleLanguageTabChange = (event, newValue) => {
+    setLanguageTabValue(newValue);
+    setPage(1); // Reset to first page when changing languages
+  };
+
+  // Modified dialog tab handler
+  const handleDialogTabChange = (event, newValue) => {
+    setDialogTabValue(newValue);
+  };
 
   const handlePageChange = (event, value) => {
     setPage(value);
@@ -64,7 +82,6 @@ function WordList() {
     setIsDetailsDialogOpen(false);
     setSelectedWord(null);
     setEditedWord(null);
-    setTabValue('1'); // Reset tab to first tab
   };
 
   const handleSaveEdit = async () => {
@@ -159,7 +176,7 @@ function WordList() {
       handleCloseDeleteDialog();
     } catch (error) {
       console.error('Error deleting word:', error);
-      
+
       setSnackbar({
         open: true,
         message: 'Error deleting word',
@@ -182,14 +199,31 @@ function WordList() {
     return <Typography color="error">Error loading words: {error.message}</Typography>;
   }
 
-  if (!words?.data?.length) {
-    return <Typography>No words found</Typography>;
-  }
-
   return (
     <>
+      {/* Language Tabs */}
+      <TabContext value={languageTabValue}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <TabList
+            onChange={handleLanguageTabChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            aria-label="Language tabs"
+          >
+            <Tab label="All Languages" value="1" />
+            {languages?.map((language, index) => (
+              <Tab
+                key={language.code}
+                label={language.name}
+                value={(index + 2).toString()}
+              />
+            ))}
+          </TabList>
+        </Box>
+      </TabContext>
+
       <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
-        <Pagination count={words.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+        <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
       </Box>
 
       <TableContainer component={Paper}>
@@ -197,6 +231,7 @@ function WordList() {
           <TableHead>
             <TableRow>
               <TableCell>Word</TableCell>
+              <TableCell>Language</TableCell>
               <TableCell align='right'>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -209,6 +244,7 @@ function WordList() {
                 sx={{ cursor: 'pointer' }}
               >
                 <TableCell>{word.word}</TableCell>
+                <TableCell>{word.language?.name}</TableCell>
                 <TableCell align='right'>
                   <IconButton onClick={(e) => {
                     e.stopPropagation();
@@ -233,11 +269,11 @@ function WordList() {
         maxWidth="md"
         fullWidth
       >
-        <TabContext value={tabValue}>
+        <TabContext value={dialogTabValue}>
           <DialogTitle>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
               <TabList
-                onChange={handleTabChange}
+                onChange={handleDialogTabChange}
                 variant="scrollable"
                 scrollButtons="auto"
                 aria-label="Word Card Tabs"
