@@ -6,6 +6,7 @@ import {
   Box,
   DialogTitle,
   Pagination,
+  Grid,
 } from '@mui/material';
 import { EyeOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, TranslationOutlined, DiffOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -203,28 +204,33 @@ function WordList() {
     <>
       {/* Language Tabs */}
       <TabContext value={languageTabValue}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <TabList
-            onChange={handleLanguageTabChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            aria-label="Language tabs"
-          >
-            <Tab label="All Languages" value="1" />
-            {languages?.map((language, index) => (
-              <Tab
-                key={language.code}
-                label={language.name}
-                value={(index + 2).toString()}
-              />
-            ))}
-          </TabList>
-        </Box>
+        <Grid container>
+          <Grid item xs={12} sm={6}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <TabList
+                onChange={handleLanguageTabChange}
+                variant="scrollable"
+                scrollButtons="auto"
+                aria-label="Language tabs"
+              >
+                <Tab label="All Languages" value="1" />
+                {languages?.map((language, index) => (
+                  <Tab
+                    key={language.code}
+                    label={language.name}
+                    value={(index + 2).toString()}
+                  />
+                ))}
+              </TabList>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
+              <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+            </Box>
+          </Grid>
+        </Grid>
       </TabContext>
-
-      <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
-        <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
-      </Box>
 
       <TableContainer component={Paper}>
         <Table>
