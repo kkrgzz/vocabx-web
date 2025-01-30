@@ -7,10 +7,17 @@ import axios from 'utils/axios';
 import queryClient from 'utils/queryClient';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { getLanguages } from 'utils/crud/LanguageController';
+import Toast from 'components/Toast';
 
 function SentenceEditor() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success'
+    });
+
     const [page, setPage] = useState(1);
     const [tabValue, setTabValue] = useState('1');
     const [selectedLanguage, setSelectedLanguage] = useState(null);
@@ -30,7 +37,18 @@ function SentenceEditor() {
             sentence: sentence.text
         }),
         onSuccess: () => {
-            console.log('Sentence updated successfully');
+            setSnackbar({
+                open: true,
+                message: 'Sentence updated successfully',
+                severity: 'success'
+            });
+        },
+        onError: () => {
+            setSnackbar({
+                open: true,
+                message: 'Error updating sentence',
+                severity: 'error'
+            });
         }
     });
 
@@ -40,14 +58,36 @@ function SentenceEditor() {
             sentence: sentence.text
         }),
         onSuccess: () => {
-            console.log('Sentence created successfully');
+            setSnackbar({
+                open: true,
+                message: 'Sentence created successfully',
+                severity: 'success'
+            });
+        },
+        onError: () => {
+            setSnackbar({
+                open: true,
+                message: 'Error creating sentence',
+                severity: 'error'
+            });
         }
     });
 
     const deleteSentenceMutation = useMutation({
         mutationFn: async (sentenceId) => axios.delete(`api/sentences/${sentenceId}`),
         onSuccess: () => {
-            console.log('Sentence deleted successfully');
+            setSnackbar({
+                open: true,
+                message: 'Sentence deleted successfully',
+                severity: 'success'
+            });
+        },
+        onError: () => {
+            setSnackbar({
+                open: true,
+                message: 'Error deleting sentence',
+                severity: 'error'
+            });
         }
     });
 
@@ -76,6 +116,12 @@ function SentenceEditor() {
 
     const handleTabChange = (event, newValue) => {
         setTabValue(newValue);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({
+            open: false
+        });
     };
 
     const startEditing = (word_id, sentenceId, text) => {
@@ -296,6 +342,8 @@ function SentenceEditor() {
             <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
                 <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
             </Box>
+
+            <Toast open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleCloseSnackbar} />
         </>
     );
 }
