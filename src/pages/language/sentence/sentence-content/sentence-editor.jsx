@@ -1,19 +1,28 @@
 import { CheckOutlined, CloseOutlined, DeleteOutlined, DownOutlined, EditOutlined } from '@ant-design/icons';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, Tab, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { getWords } from 'utils/crud/WordController';
 import axios from 'utils/axios';
 import queryClient from 'utils/queryClient';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
+import { getLanguages } from 'utils/crud/LanguageController';
 
 function SentenceEditor() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const [page, setPage] = useState(1);
+    const [tabValue, setTabValue] = useState('1');
+    const [selectedLanguage, setSelectedLanguage] = useState(null);
 
     const { data: wordsData, isLoading, isError } = useQuery({
-        queryKey: ['words'],
-        queryFn: async () => getWords({ page: page, perPage: 20, sort: 'desc' })
+        queryKey: ['words', page, selectedLanguage], // Include page and selectedLanguage in queryKey
+        queryFn: async () => getWords({ page: page, perPage: 20, sort: 'desc', language_code: selectedLanguage })
+    });
+
+    const { data: languages, isLoading: isLanguagesLoading } = useQuery({
+        queryKey: ['languages'],
+        queryFn: async () => getLanguages()
     });
 
     const updateSentenceMutation = useMutation({
@@ -48,18 +57,25 @@ function SentenceEditor() {
     const [newSentence, setNewSentence] = useState({ word_id: null, text: '' });
 
     useEffect(() => {
-        queryClient.invalidateQueries(['words']);
-    }, [page]);
-
-    useEffect(() => {
         if (wordsData?.data) {
             setLocalWords(wordsData.data);
         }
     }, [wordsData]);
 
+    useEffect(() => {
+        if (!isLanguagesLoading && languages) {
+            const index = parseInt(tabValue) - 2;
+            const selectedLang = index >= 0 ? languages[index]?.code : null;
+            setSelectedLanguage(selectedLang);
+        }
+    }, [tabValue, isLanguagesLoading, languages]);
 
     const handleAccordionChange = (word_id) => (_, isExpanded) => {
         setExpanded(isExpanded ? word_id : null);
+    };
+
+    const handleTabChange = (event, newValue) => {
+        setTabValue(newValue);
     };
 
     const startEditing = (word_id, sentenceId, text) => {
@@ -138,111 +154,145 @@ function SentenceEditor() {
         setPage(value);
     }
 
+    const renderWordsAccordions = () => (
+        localWords.map(word => (
+            <Accordion
+                key={word.id}
+                expanded={expanded === word.id}
+                onChange={handleAccordionChange(word.id)}
+            >
+                <AccordionSummary expandIcon={<DownOutlined />}>
+                    <Typography sx={{ flexGrow: 1, fontWeight: 'bold' }}>{word.word}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                    <Box sx={{ p: word?.sentences?.length > 0 ? 2 : 0 }}>
+                        {word.sentences?.map(sentence => (
+                            <Grid
+                                container
+                                key={sentence.id}
+                                spacing={1}
+                                alignItems="center"
+                                sx={{ mb: 1, p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
+                            >
+                                {editing.word_id === word.id && editing.sentenceId === sentence.id ? (
+                                    <>
+                                        <Grid item xs={12} sm={9}>
+                                            <TextField
+                                                fullWidth
+                                                value={editing.text}
+                                                onChange={(e) => setEditing(prev => ({ ...prev, text: e.target.value }))}
+                                                autoFocus
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                            <IconButton onClick={saveEditing} color="success">
+                                                <CheckOutlined />
+                                            </IconButton>
+                                            <IconButton onClick={cancelEditing} color="error">
+                                                <CloseOutlined />
+                                            </IconButton>
+                                        </Grid>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Grid item xs={12} sm={9}>
+                                            <Typography sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}>{sentence.sentence}</Typography>
+                                        </Grid>
+                                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                            <IconButton
+                                                onClick={() => startEditing(word.id, sentence.id, sentence.sentence)}
+                                                color="primary"
+                                            >
+                                                <EditOutlined />
+                                            </IconButton>
+                                            <IconButton
+                                                onClick={() => handleDeleteSentence(word.id, sentence.id)}
+                                                color="error"
+                                            >
+                                                <DeleteOutlined />
+                                            </IconButton>
+                                        </Grid>
+                                    </>
+                                )}
+                            </Grid>
+                        ))}
+                        {newSentence.word_id === word.id ? (
+                            <Grid container alignItems="center" sx={{ mt: 2 }}>
+                                <Grid item xs={12} sm={9}>
+                                    <TextField
+                                        fullWidth
+                                        value={newSentence.text}
+                                        onChange={(e) => setNewSentence(prev => ({ ...prev, text: e.target.value }))}
+                                        placeholder="Enter new sentence"
+                                        autoFocus
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
+                                    <IconButton onClick={saveNewSentence} color="success">
+                                        <CheckOutlined />
+                                    </IconButton>
+                                    <IconButton onClick={cancelNewSentence} color="error">
+                                        <CloseOutlined />
+                                    </IconButton>
+                                </Grid>
+                            </Grid>
+                        ) : (
+                            <Button
+                                variant="outlined"
+                                onClick={() => startNewSentence(word.id)}
+                                sx={{ mt: 2 }}
+                            >
+                                Add Sentence
+                            </Button>
+                        )}
+                    </Box>
+                </AccordionDetails>
+            </Accordion>
+        ))
+    );
+
     if (isLoading) return <CircularProgress />;
     if (isError) return <div>Error loading words</div>;
 
     return (
         <>
-            <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
-                <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
-            </Box>
-            {localWords.map(word => (
-                <Accordion
-                    key={word.id}
-                    expanded={expanded === word.id}
-                    onChange={handleAccordionChange(word.id)}
-                >
-                    <AccordionSummary expandIcon={<DownOutlined />}>
-                        <Typography sx={{ flexGrow: 1, fontWeight: 'bold' }}>{word.word}</Typography>
-                    </AccordionSummary>
-
-                    <AccordionDetails>
-                        <Box sx={{ p: word?.sentences?.length > 0 ? 2 : 0 }}>
-                            {word.sentences?.map(sentence => (
-                                <Grid
-                                    container
-                                    key={sentence.id}
-                                    spacing={1}
-                                    alignItems="center"
-                                    sx={{ mb: 1, p: 1, borderRadius: 1, '&:hover': { bgcolor: 'action.hover' } }}
-                                >
-                                    {editing.word_id === word.id && editing.sentenceId === sentence.id ? (
-                                        <>
-                                            <Grid item xs={12} sm={9}>
-                                                <TextField
-                                                    fullWidth
-                                                    value={editing.text}
-                                                    onChange={(e) => setEditing(prev => ({ ...prev, text: e.target.value }))}
-                                                    autoFocus
-                                                />
-                                            </Grid>
-                                            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                                <IconButton onClick={saveEditing} color="success">
-                                                    <CheckOutlined />
-                                                </IconButton>
-                                                <IconButton onClick={cancelEditing} color="error">
-                                                    <CloseOutlined />
-                                                </IconButton>
-                                            </Grid>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Grid item xs={12} sm={9}>
-                                                <Typography sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}>{sentence.sentence}</Typography>
-                                            </Grid>
-                                            <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                                <IconButton
-                                                    onClick={() => startEditing(word.id, sentence.id, sentence.sentence)}
-                                                    color="primary"
-                                                >
-                                                    <EditOutlined />
-                                                </IconButton>
-                                                <IconButton
-                                                    onClick={() => handleDeleteSentence(word.id, sentence.id)}
-                                                    color="error"
-                                                >
-                                                    <DeleteOutlined />
-                                                </IconButton>
-                                            </Grid>
-                                        </>
-                                    )}
-                                </Grid>
+            <TabContext value={tabValue}>
+                <Grid container>
+                    <Grid item xs={12} sm={6}>
+                        <TabList
+                            onChange={handleTabChange}
+                            variant="scrollable"
+                            aria-label="Language Tabs"
+                            allowScrollButtonsMobile={true}
+                        >
+                            <Tab label="All" value="1" />
+                            {languages?.map((language, index) => (
+                                <Tab key={language.code} label={language.name} value={(index + 2).toString()} />
                             ))}
-
-                            {newSentence.word_id === word.id ? (
-                                <Grid container alignItems="center" sx={{ mt: 2 }}>
-                                    <Grid item xs={12} sm={9}>
-                                        <TextField
-                                            fullWidth
-                                            value={newSentence.text}
-                                            onChange={(e) => setNewSentence(prev => ({ ...prev, text: e.target.value }))}
-                                            placeholder="Enter new sentence"
-                                            autoFocus
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-                                        <IconButton onClick={saveNewSentence} color="success">
-                                            <CheckOutlined />
-                                        </IconButton>
-                                        <IconButton onClick={cancelNewSentence} color="error">
-                                            <CloseOutlined />
-                                        </IconButton>
-                                    </Grid>
-                                </Grid>
-                            ) : (
-                                <Button
-                                    variant="outlined"
-                                    onClick={() => startNewSentence(word.id)}
-                                    sx={{ mt: 2 }}
-                                >
-                                    Add Sentence
-                                </Button>
-                            )}
+                        </TabList>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
+                            <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
                         </Box>
-                    </AccordionDetails>
-                </Accordion>
-            ))}
+                    </Grid>
+                </Grid>
 
+                {/* 'All' TabPanel */}
+                <TabPanel value="1" sx={{ px: 0, py: 1 }}>
+                    {renderWordsAccordions()}
+                </TabPanel>
+
+                {/* Language TabPanels */}
+                {languages?.map((language, index) => {
+                    const tabValueForLanguage = (index + 2).toString();
+                    return (
+                        <TabPanel key={language.code} value={tabValueForLanguage} sx={{ px: 0, py: 1 }}>
+                            {renderWordsAccordions()}
+                        </TabPanel>
+                    );
+                })}
+            </TabContext>
             <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
                 <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
             </Box>
