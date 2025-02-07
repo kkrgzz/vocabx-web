@@ -40,6 +40,7 @@ const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
 
 // Other Pages
 const AttributionsPage = Loadable(lazy(() => import('pages/others/attributions')));
+const AboutPage = Loadable(lazy(() => import('pages/others/about')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -135,6 +136,10 @@ const MainRoutes = {
     {
       path: 'attributions',
       element: <AttributionsPage />
+    },
+    {
+      path: 'about',
+      element: <AboutPage />
     },
     {
       path: '/*',
