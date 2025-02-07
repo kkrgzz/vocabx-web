@@ -33,10 +33,13 @@ const NewWordListPage = Loadable(lazy(() => import('pages/language/word/list-wor
 const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence')));
 
 // Sentence Pages V2
-const SentenceEditorPage = Loadable(lazy(()=>import('pages/language/sentence/index')));
+const SentenceEditorPage = Loadable(lazy(() => import('pages/language/sentence/index')));
 
 // Settings pages
 const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
+
+// Other Pages
+const AttributionsPage = Loadable(lazy(() => import('pages/others/attributions')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -128,6 +131,10 @@ const MainRoutes = {
           element: <ProfilePage />
         }
       ]
+    },
+    {
+      path: 'attributions',
+      element: <AttributionsPage />
     },
     {
       path: '/*',
