@@ -1,6 +1,7 @@
-import { BulbOutlined, GiftOutlined } from "@ant-design/icons";
+import { AlertOutlined, BulbOutlined, GiftOutlined } from "@ant-design/icons";
 
 const icons = {
+    informationIcon: AlertOutlined,
     aboutIcon: BulbOutlined,
     attributionsIcon: GiftOutlined
 }
@@ -12,19 +13,28 @@ const others = {
     url: '/others',
     children: [
         {
-            id: 'about',
-            title: 'About',
-            type: 'item',
-            url: '/about',
-            icon: icons.aboutIcon
+            id: 'information',
+            title: 'Information',
+            type: 'collapse',
+            icon: icons.informationIcon,
+            children: [
+                {
+                    id: 'about',
+                    title: 'About',
+                    type: 'item',
+                    url: '/about',
+                    icon: icons.aboutIcon
+                },
+                {
+                    id: 'attributions',
+                    title: 'Attributions',
+                    type: 'item',
+                    url: '/attributions',
+                    icon: icons.attributionsIcon
+                }
+            ]
         },
-        {
-            id: 'attributions',
-            title: 'Attributions',
-            type: 'item',
-            url: '/attributions',
-            icon: icons.attributionsIcon
-        }
+
     ]
 }
 
