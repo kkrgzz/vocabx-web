@@ -1,7 +1,7 @@
-import { HomeOutlined } from "@ant-design/icons";
+import { HomeTwoTone } from "@ant-design/icons";
 
 const icons = {
-    homeIcon: HomeOutlined
+    homeIcon: HomeTwoTone
 }
 
 const home = {

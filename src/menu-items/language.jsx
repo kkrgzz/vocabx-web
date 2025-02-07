@@ -1,13 +1,25 @@
-import { BookOutlined, HighlightOutlined, InsuranceOutlined, PicCenterOutlined, PlusOutlined, TrophyOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import {
+    BookOutlined,
+    FireTwoTone,
+    HighlightOutlined,
+    InsuranceTwoTone,
+    PlusOutlined,
+    PushpinOutlined,
+    ScheduleTwoTone,
+    TagOutlined,
+    UnorderedListOutlined
+} from '@ant-design/icons';
 
 const icons = {
-    wordsIcon: InsuranceOutlined,
+    wordsIcon: InsuranceTwoTone,
     newIcon: PlusOutlined,
     listIcon: UnorderedListOutlined,
-    sentenceIcon: PicCenterOutlined,
-    practiceIcon: TrophyOutlined,
+    sentenceIcon: ScheduleTwoTone,
+    practiceIcon: FireTwoTone,
     sentenceEditorIcon: HighlightOutlined,
-    flashCardIcon: BookOutlined
+    flashCardIcon: BookOutlined,
+    vocabularyPracticeIcon: PushpinOutlined,
+    sentencePracticeIcon: TagOutlined
 }
 
 const language = {
@@ -74,14 +86,14 @@ const language = {
                     title: 'Vocabulary',
                     type: 'item',
                     url: '/practice/vocabulary',
-                    icon: icons.wordsIcon,
+                    icon: icons.vocabularyPracticeIcon,
                 },
                 {
                     id: 'practice-sentence',
                     title: 'Sentence',
                     type: 'item',
                     url: '/practice/sentence',
-                    icon: icons.sentenceIcon,
+                    icon: icons.sentencePracticeIcon,
                 }
             ]
         }

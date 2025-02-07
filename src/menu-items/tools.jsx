@@ -1,10 +1,11 @@
-import { CheckSquareOutlined, ClockCircleOutlined, CoffeeOutlined, HourglassOutlined } from "@ant-design/icons";
+import { CheckCircleTwoTone, ClockCircleTwoTone,  HeartTwoTone, HourglassTwoTone, ProjectTwoTone } from "@ant-design/icons";
 
 const icons = {
-    noteIcon: CoffeeOutlined,
-    todoIcon: CheckSquareOutlined,
-    pomodoroIcon: HourglassOutlined,
-    timerIcon: ClockCircleOutlined,
+    noteIcon: ProjectTwoTone,
+    todoIcon: CheckCircleTwoTone,
+    moodTrackerIcon: HeartTwoTone,
+    pomodoroIcon: HourglassTwoTone,
+    timerIcon: ClockCircleTwoTone,
 }
 
 const tools = {
@@ -26,6 +27,13 @@ const tools = {
             type: 'item',
             url: '/todo',
             icon: icons.todoIcon
+        },
+        {
+            id: 'mood-tracker',
+            title: 'Mood Tracker',
+            type: 'item',
+            url: '/mood-tracker',
+            icon: icons.moodTrackerIcon
         },
         {
             id: 'pomodoro',
