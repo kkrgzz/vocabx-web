@@ -13,7 +13,7 @@ function LastWords() {
 
     const { data: words, isLoading: isWordsLoading } = useQuery({
         queryKey: ['words'],
-        queryFn: async () => getWords({ page: 1, perPage: colors.length, sort: 'desc' })
+        queryFn: async () => getWords({ page: 1, perPage: colors.length, sort: 'desc' }),
     });
 
     const handleMoreWordsButton = () => navigate('/word/list');
@@ -23,7 +23,7 @@ function LastWords() {
             <Grid container spacing={1} justifyContent="center">
                 {!isWordsLoading
                     ? (
-                        words.data.map((word, index) => (
+                        words?.data?.map((word, index) => (
                             <Grid xs={6} sm={4} md={12} lg={12} key={word.id} item>
                                 <Chip
                                     label={word?.word}
