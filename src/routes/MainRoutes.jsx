@@ -35,6 +35,9 @@ const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence'
 // Sentence Pages V2
 const SentenceEditorPage = Loadable(lazy(() => import('pages/language/sentence/index')));
 
+// Mood Tracker Pages
+const MoodTrackerPage = Loadable(lazy(() => import('pages/mood-tracker/index')));
+
 // Settings pages
 const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
 
@@ -68,6 +71,10 @@ const MainRoutes = {
           element: <QuickWordList />
         }
       ]
+    },
+    {
+      path: 'mood-tracker',
+      element: <MoodTrackerPage />,
     },
     {
       path: 'dashboard',
