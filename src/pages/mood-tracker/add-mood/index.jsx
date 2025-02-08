@@ -13,6 +13,8 @@ import Toast from 'components/Toast';
 function AddMood() {
     const [selectedMood, setSelectedMood] = useState(null);
     const [feelingText, setFeelingText] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: '',
@@ -48,6 +50,8 @@ function AddMood() {
     };
 
     const handleSubmit = async () => {
+        setIsSubmitting(true);
+
         try {
             await axios.post('/api/moods', {
                 mood_score: selectedMood,
@@ -58,7 +62,7 @@ function AddMood() {
 
             setSelectedMood(null);
             setFeelingText('');
-
+            setIsSubmitting(false);
             setSnackbar({
                 open: true,
                 message: 'Mood added successfully!',
@@ -66,6 +70,7 @@ function AddMood() {
             });
         } catch (error) {
             console.log(error);
+            setIsSubmitting(false);
             setSnackbar({
                 open: true,
                 message: 'Failed to add mood. Please try again.',
@@ -174,7 +179,7 @@ function AddMood() {
 
                     {/* Submit Button */}
                     <Box sx={{ mt: 2 }}>
-                        <Button variant="contained" color="primary" fullWidth onClick={handleSubmit}>
+                        <Button variant="contained" disabled={isSubmitting} color="primary" fullWidth onClick={handleSubmit}>
                             Submit
                         </Button>
                     </Box>
