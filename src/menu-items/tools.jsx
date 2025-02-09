@@ -24,9 +24,25 @@ const tools = {
         {
             id: 'todo',
             title: 'To-Do',
-            type: 'item',
+            type: 'collapse',
             url: '/todo',
-            icon: icons.todoIcon
+            icon: icons.todoIcon,
+            children: [
+                {
+                    id: 'todo-dashboard',
+                    title: 'Dashboard',
+                    type: 'item',
+                    url: '/todo/dashboard',
+                    icon: icons.todoIcon,
+                },
+                {
+                    id: 'todo-categories',
+                    title: 'Categories',
+                    type: 'item',
+                    url: '/todo/categories',
+                    icon: icons.todoIcon,
+                }
+            ]
         },
         {
             id: 'mood-tracker',

@@ -35,6 +35,10 @@ const NewSentencePage = Loadable(lazy(() => import('pages/sentence/new-sentence'
 // Sentence Pages V2
 const SentenceEditorPage = Loadable(lazy(() => import('pages/language/sentence/index')));
 
+// Todo Pages
+const ToDoDashboardPage = Loadable(lazy(() => import('pages/todo/index')));
+const ToDoCategoriesPage = Loadable(lazy(() => import('pages/todo/todo-categories/index')));
+
 // Mood Tracker Pages
 const MoodTrackerPage = Loadable(lazy(() => import('pages/mood-tracker/index')));
 
@@ -69,6 +73,19 @@ const MainRoutes = {
         {
           path: 'word-list',
           element: <QuickWordList />
+        }
+      ]
+    },
+    {
+      path: 'todo',
+      children: [
+        {
+          path: 'dashboard',
+          element: <ToDoDashboardPage />,
+        },
+        {
+          path: 'categories',
+          element: <ToDoCategoriesPage />,
         }
       ]
     },
