@@ -1,4 +1,4 @@
-import { CheckCircleTwoTone, ClockCircleTwoTone,  HeartTwoTone, HourglassTwoTone, ProjectTwoTone } from "@ant-design/icons";
+import { CheckCircleTwoTone, ClockCircleTwoTone,  GoldTwoTone,  HeartTwoTone, HourglassTwoTone, NumberOutlined, ProjectTwoTone, ReconciliationOutlined, ReconciliationTwoTone } from "@ant-design/icons";
 
 const icons = {
     noteIcon: ProjectTwoTone,
@@ -6,6 +6,8 @@ const icons = {
     moodTrackerIcon: HeartTwoTone,
     pomodoroIcon: HourglassTwoTone,
     timerIcon: ClockCircleTwoTone,
+    todoCategoriesIcon: NumberOutlined,
+    todoDashboardIcon: ReconciliationOutlined,
 }
 
 const tools = {
@@ -33,14 +35,14 @@ const tools = {
                     title: 'Dashboard',
                     type: 'item',
                     url: '/todo/dashboard',
-                    icon: icons.todoIcon,
+                    icon: icons.todoDashboardIcon,
                 },
                 {
                     id: 'todo-categories',
                     title: 'Categories',
                     type: 'item',
                     url: '/todo/categories',
-                    icon: icons.todoIcon,
+                    icon: icons.todoCategoriesIcon,
                 }
             ]
         },
