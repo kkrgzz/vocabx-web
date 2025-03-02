@@ -1,13 +1,18 @@
-import { DownOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, FormControl, Grid, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
+import { AlignLeftOutlined, DownOutlined, InfoCircleOutlined, PlusCircleOutlined, TagOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import MainCard from 'components/MainCard';
 import React, { useState } from 'react';
 
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
 function AddToDo({ canExpandable = true, initiallExpanded = true }) {
   const [todoCategories, setTodoCategories] = useState([]);
-  const [selectedTodoCategory, setSelectedTodoCategory] = useState(null);
+  const [selectedTodoCategory, setSelectedTodoCategory] = useState('');
   const [todoTitle, setTodoTitle] = useState('');
   const [todoDescription, setTodoDescription] = useState('');
+  const [dueDate, setDueDate] = useState(dayjs());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [expanded, setExpanded] = useState(initiallExpanded); // State to control accordion expansion
 
@@ -42,13 +47,64 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
 
   const renderForm = () => (
     <Grid container spacing={2} justifyContent='center'>
-      <Stack width='100%' maxWidth='600px' spacing={1} direction='column'>
+      <Stack width='100%' maxWidth='600px' spacing={2} direction='column'>
+
+        <Grid item xs={12}>
+          <TextField
+            label="Title"
+            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <InfoCircleOutlined />
+                </InputAdornment>
+              )
+            }}
+            fullWidth
+            value={todoTitle}
+            onChange={handleTodoTitleChange}
+            inputProps={{ maxLength: maxTodoTitleLength }}
+            helperText={`${todoTitle.length}/${maxTodoTitleLength.toString()}`}
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <TextField
+            label="Description"
+            variant="outlined"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <AlignLeftOutlined />
+                </InputAdornment>
+              )
+            }}
+            fullWidth
+            value={todoDescription}
+            onChange={handleTodoDescriptionChange}
+            inputProps={{ maxLength: maxTodoDescriptionLength }}
+            helperText={`${todoDescription.length}/${maxTodoDescriptionLength.toString()}`}
+          />
+        </Grid>
+
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Due Date"
+            value={dueDate}
+            onChange={(newValue) => {
+              setDueDate(newValue);
+            }}
+            slotProps={{ textField: { variant: 'outlined' } }}
+          />
+        </LocalizationProvider>
+
         <Grid item xs={12}>
           <FormControl fullWidth variant="outlined">
             <InputLabel id="todo-category-selection-label">Category</InputLabel>
             <Select
               labelId="todo-category-selection-label"
               id="todo-category-selection"
+              startAdornment={<InputAdornment position='start'><TagOutlined /></InputAdornment>}
               value={selectedTodoCategory}
               label="Category"
               onChange={handleTodoCategoryChange}
@@ -59,35 +115,12 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
-          <TextField
-            label="Title"
-            variant="outlined"
-            fullWidth
-            value={todoTitle}
-            onChange={handleTodoTitleChange}
-            inputProps={{ maxLength: maxTodoTitleLength }}
-            helperText={`${todoTitle.length}/${maxTodoTitleLength.toString()}`}
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <TextField
-            label="Description"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={todoDescription}
-            onChange={handleTodoDescriptionChange}
-            inputProps={{ maxLength: maxTodoDescriptionLength }}
-            helperText={`${todoDescription.length}/${maxTodoDescriptionLength.toString()}`}
-          />
-        </Grid>
+
         <Grid item xs={12} display="flex" justifyContent="center">
           <Button
             onClick={handleSubmitButton}
             variant="contained"
-            color="primary"
+            color="success"
             sx={{
               width: '100%',
               maxWidth: '300px',
