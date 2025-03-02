@@ -2,7 +2,7 @@ import React from 'react'
 import { Card, CardActionArea, CardContent, Chip, Grid, Typography } from '@mui/material'
 import { TODO_STATUSES } from 'utils/getStatus';
 
-function TodoGridView({ todos, selectedTab, handleTodoClick, getCategoryName }) {
+function TodoGridView({ todos, handleTodoClick, getCategoryName }) {
 
     // Get status config or return a default
     const getStatusConfig = (status) => {
@@ -22,12 +22,6 @@ function TodoGridView({ todos, selectedTab, handleTodoClick, getCategoryName }) 
                                     return <StatusIcon style={{ color: statusConfig.color }} size={24} />;
                                 })()}
                                 <Typography variant="h6">{todo.title}</Typography>
-                                {selectedTab === 0 && (
-                                    <Chip label={getCategoryName(todo.category_id)} sx={{ mt: 1 }} />
-                                )}
-                                {
-
-                                }
                             </CardContent>
                         </CardActionArea>
                     </Card>

@@ -4,19 +4,22 @@ import { Calendar, Tag } from '@phosphor-icons/react';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TODO_STATUSES } from 'utils/getStatus';
+import dayjs from 'dayjs';
 
 function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDetailsDialog, categories }) {
     const [editedTitle, setEditedTitle] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
     const [editedStatus, setEditedStatus] = useState('');
     const [editedCategory, setEditedCategory] = useState('');
+    const [editedDueDate, setEditedDueDate] = useState(dayjs());
 
     useEffect(() => {
         if (selectedTodo) {
-            setEditedTitle(selectedTodo.title);
-            setEditedDescription(selectedTodo.description);
-            setEditedStatus(selectedTodo.status);
-            setEditedCategory(selectedTodo.category_id);
+            setEditedTitle(selectedTodo.title || '');
+            setEditedDescription(selectedTodo.description || '');
+            setEditedStatus(selectedTodo.status || 'TODO');
+            setEditedCategory(selectedTodo.category_id || '');
+            setEditedDueDate(dayjs(selectedTodo.due_date) || dayjs());
         }
     }, [selectedTodo]);
 
@@ -56,6 +59,8 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                             <DatePicker
                                 sx={{ width: '100%' }}
                                 label="Due Date"
+                                value={editedDueDate}
+                                onChange={(newValue) => setEditedDueDate(newValue)}
                                 slotProps={{ textField: { variant: 'outlined' } }}
                             />
                         </LocalizationProvider>
@@ -91,16 +96,17 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                                 value={editedCategory}
                                 onChange={(e) => setEditedCategory(e.target.value)}
                             >
-                                {categories.map((category) => (
+                                <MenuItem value=''>None</MenuItem>
+                                {categories?.map((category) => (
                                     <MenuItem key={category.id} value={category.id}>
-                                        {category.name}
+                                        {category.title}
                                     </MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
                     </Stack>
                     <Typography variant='caption'>
-                        Created: 02.05.2000 13:00:00
+                        Created: {selectedTodo?.created_at || 'N/A'}
                     </Typography>
                 </Stack>
             </DialogContent>
