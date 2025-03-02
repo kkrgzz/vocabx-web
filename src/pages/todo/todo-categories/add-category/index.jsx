@@ -2,6 +2,8 @@ import { Box, Button, TextField } from '@mui/material'
 import MainCard from 'components/MainCard'
 import Toast from 'components/Toast';
 import React, { useEffect, useState } from 'react'
+import axios from 'utils/axios';
+import queryClient from 'utils/queryClient';
 
 function TodoAddCategory() {
 
@@ -47,12 +49,20 @@ function TodoAddCategory() {
     }
 
     try {
-
-      setSnackbar({
-        open: true,
-        message: 'ToDo Category added successfully!',
-        severity: 'success'
+      const response = await axios.post(`/api/todo-categories`, {
+        title: newCategoryText
       });
+      
+      if (response.status === 201) {
+        setSnackbar({
+          open: true,
+          message: 'Todo Category added successfully!',
+          severity: 'success'
+        });
+        setNewCategoryText('');
+        queryClient.invalidateQueries(['todoCategories']);
+      }
+
     } catch (error) {
       console.log(error);
       setSnackbar({
