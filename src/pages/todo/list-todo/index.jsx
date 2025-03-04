@@ -12,7 +12,14 @@ import { getTodoCategories } from 'utils/crud/TodoCategoryController';
 import { getTodos } from 'utils/crud/TodoController';
 import Toast from 'components/Toast';
 
-function ListToDo({ todosPerPage = 10, canExpandable = true, initialExpanded = true, showPagination = true, showFilter = true, showToggleView = true }) {
+function ListToDo({
+  todosPerPage = 10,
+  canExpandable = true,
+  initialExpanded = true,
+  showPagination = true,
+  showFilter = true,
+  showToggleView = true
+}) {
   const [expanded, setExpanded] = useState(initialExpanded); // State to control accordion expansion
   const [isGridView, setIsGridView] = useState(false); // State to toggle between grid and list view
   const [selectedTodo, setSelectedTodo] = useState(null); // State to control selected todo
