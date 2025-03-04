@@ -113,6 +113,7 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
             }}
             fullWidth
             value={todoTitle}
+            sx={{ mt: 1 }}
             onChange={handleTodoTitleChange}
             inputProps={{ maxLength: maxTodoTitleLength }}
             helperText={`${todoTitle.length}/${maxTodoTitleLength.toString()}`}
