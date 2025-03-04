@@ -12,7 +12,7 @@ import { getTodoCategories } from 'utils/crud/TodoCategoryController';
 import { getTodos } from 'utils/crud/TodoController';
 import Toast from 'components/Toast';
 
-function ListToDo({ canExpandable = true, initialExpanded = true, showPagination = true, showFilter = true, showToggleView = true }) {
+function ListToDo({ todosPerPage = 10, canExpandable = true, initialExpanded = true, showPagination = true, showFilter = true, showToggleView = true }) {
   const [expanded, setExpanded] = useState(initialExpanded); // State to control accordion expansion
   const [isGridView, setIsGridView] = useState(false); // State to toggle between grid and list view
   const [selectedTodo, setSelectedTodo] = useState(null); // State to control selected todo
@@ -30,7 +30,7 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
 
   const { data: todos, isLoading: isTodosLoading } = useQuery({
     queryKey: ['todos', todoPage, categoryFilter, statusFilter, sortBy],
-    queryFn: async () => getTodos({ page: todoPage, perPage: 10, sort: sortBy, category: categoryFilter, status: statusFilter }),
+    queryFn: async () => getTodos({ page: todoPage, perPage: todosPerPage, sort: sortBy, category: categoryFilter, status: statusFilter }),
   });
 
   const [snackbar, setSnackbar] = useState({

@@ -15,7 +15,6 @@ import SadFaceImage from 'assets/images/moods/sad.png';
 import NeutralFaceImage from 'assets/images/moods/confused.png';
 import SmileFaceImage from 'assets/images/moods/smile.png';
 import HappyFaceImage from 'assets/images/moods/happy-face.png';
-import axios from 'utils/axios';
 import { getMoods } from 'utils/crud/MoodController';
 import { useQuery } from '@tanstack/react-query';
 
@@ -28,11 +27,11 @@ const moodData = {
     4: { name: 'happy', image: HappyFaceImage, color: '#c3f1cb' },
 };
 
-function RecentMoods() {
+function RecentMoods({ moodCount = 6 }) {
 
     const { data: moods, isLoading: isMoodsLoading } = useQuery({
         queryKey: ['moods'],
-        queryFn: async () => getMoods({ count: 6 })
+        queryFn: async () => getMoods({ count: moodCount })
     });
 
 
