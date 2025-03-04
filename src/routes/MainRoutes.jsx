@@ -25,6 +25,9 @@ const OldNewWordPage = Loadable(lazy(() => import('pages/vocabulary/new-word')))
 const OldEditWordPage = Loadable(lazy(() => import('pages/vocabulary/list-and-edit-word')));
 const OldListWordPage = Loadable(lazy(() => import('pages/vocabulary/list-words')));
 
+// Home Pages V2
+const Home = Loadable(lazy(() => import('pages/home/index')));
+
 // Word Pages V2
 const NewWordPage = Loadable(lazy(() => import('pages/language/word/add-word/index')));
 const NewWordListPage = Loadable(lazy(() => import('pages/language/word/list-word/index')));
@@ -75,6 +78,10 @@ const MainRoutes = {
           element: <QuickWordList />
         }
       ]
+    },
+    {
+      path: 'home',
+      element: <Home />,
     },
     {
       path: 'todo',
