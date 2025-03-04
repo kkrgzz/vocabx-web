@@ -10,6 +10,7 @@ import { TODO_STATUSES } from 'utils/getStatus';
 import { useQuery } from '@tanstack/react-query';
 import { getTodoCategories } from 'utils/crud/TodoCategoryController';
 import { getTodos } from 'utils/crud/TodoController';
+import Toast from 'components/Toast';
 
 function ListToDo({ canExpandable = true, initialExpanded = true, showPagination = true, showFilter = true, showToggleView = true }) {
   const [expanded, setExpanded] = useState(initialExpanded); // State to control accordion expansion
@@ -31,8 +32,20 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
     queryFn: async () => getTodos({ page: todoPage, perPage: 10, sort: 'asc', category: categoryFilter, status: statusFilter }),
   });
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
   const handleAccordionChange = (isExpanded) => {
     setExpanded(isExpanded);
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      open: false
+    });
   };
 
   const handleTodoPageChange = (event, value) => {
@@ -168,8 +181,12 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
           todoDetailsDialogOpen={todoDetailsDialogOpen}
           handleCloseTodoDetailsDialog={handleCloseTodoDetailsDialog}
           categories={todoCategories}
+          setSnackbar={setSnackbar}
         />
       }
+
+      <Toast open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleCloseSnackbar} />
+
     </>
   );
 }

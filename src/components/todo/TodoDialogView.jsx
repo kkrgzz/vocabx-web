@@ -5,8 +5,9 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TODO_STATUSES } from 'utils/getStatus';
 import dayjs from 'dayjs';
+import axios from 'utils/axios';
 
-function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDetailsDialog, categories }) {
+function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDetailsDialog, categories, setSnackbar }) {
     const [editedTitle, setEditedTitle] = useState('');
     const [editedDescription, setEditedDescription] = useState('');
     const [editedStatus, setEditedStatus] = useState('');
@@ -23,9 +24,35 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
         }
     }, [selectedTodo]);
 
-    const handleSaveButtonClick = () => {
-        // Add your save logic here
-        handleCloseTodoDetailsDialog();
+    const handleSaveButtonClick = async () => {
+        const formattedDueDate = editedDueDate.isValid() ? editedDueDate.format('YYYY-MM-DD HH:mm:ss') : null;
+
+        const updated_data = {
+            title: editedTitle,
+            description: editedDescription,
+            status: editedStatus,
+            category_id: editedCategory,
+            due_date: formattedDueDate,
+        };
+
+        try {
+            const response = await axios.put(`/api/todos/${selectedTodo.id}`, updated_data);
+
+            setSnackbar({
+                open: true,
+                message: 'Todo saved successfully',
+                severity: 'success',
+            });
+            console.log(response);
+            //handleCloseTodoDetailsDialog();
+        } catch (error) {
+            console.error(error);
+            setSnackbar({
+                open: true,
+                message: 'An error occurred while saving the todo',
+                severity: 'error',
+            });
+        }
     };
 
     return (
@@ -106,7 +133,10 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                         </FormControl>
                     </Stack>
                     <Typography variant='caption'>
-                        Created: {selectedTodo?.created_at || 'N/A'}
+                        Created: {selectedTodo?.created_at ? dayjs(selectedTodo.created_at).format('MMMM D, YYYY h:mm A') : 'N/A'}
+                    </Typography>
+                    <Typography variant='caption'>
+                        Updated: {selectedTodo?.updated_at ? dayjs(selectedTodo.updated_at).format('MMMM D, YYYY h:mm A') : 'N/A'}
                     </Typography>
                 </Stack>
             </DialogContent>

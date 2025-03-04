@@ -2,13 +2,18 @@ import { AlignLeftOutlined, DownOutlined, InfoCircleOutlined, PlusCircleOutlined
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, FormControl, Grid, InputAdornment, InputLabel, MenuItem, Select, Stack, TextField, Typography } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import MainCard from 'components/MainCard';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { useQuery } from '@tanstack/react-query';
+import { getTodoCategories } from 'utils/crud/TodoCategoryController';
+import Toast from 'components/Toast';
+import axios from 'utils/axios';
+import { TODO_STATUSES } from 'utils/getStatus';
+import queryClient from 'utils/queryClient';
 
 function AddToDo({ canExpandable = true, initiallExpanded = true }) {
-  const [todoCategories, setTodoCategories] = useState([]);
   const [selectedTodoCategory, setSelectedTodoCategory] = useState('');
   const [todoTitle, setTodoTitle] = useState('');
   const [todoDescription, setTodoDescription] = useState('');
@@ -18,6 +23,23 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
 
   const maxTodoTitleLength = 64;
   const maxTodoDescriptionLength = 1024;
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+
+  const { data: todoCategories, isLoading: isTodoCategoriesLoading } = useQuery({
+    queryKey: ['todoCategories'],
+    queryFn: async () => getTodoCategories(),
+  });
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      open: false
+    });
+  };
 
   const handleTodoCategoryChange = (event) => {
     setSelectedTodoCategory(event.target.value);
@@ -37,7 +59,36 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
 
   const handleSubmitButton = async () => {
     setIsSubmitting(true);
-    // Add your submit logic here
+
+    try {
+      await axios.post('/api/todos', {
+        title: todoTitle,
+        description: todoDescription,
+        status: 'TODO',
+        due_date: dueDate.format('YYYY-MM-DD HH:mm:ss'),
+        category_id: selectedTodoCategory
+      });
+
+      queryClient.invalidateQueries(['todos']);
+
+      setSnackbar({
+        open: true,
+        message: 'New task added successfully!',
+        severity: 'success'
+      });
+
+      setTodoTitle('');
+      setTodoDescription('');
+      setDueDate(dayjs());
+      setSelectedTodoCategory('');
+    } catch (error) {
+      console.error('An error occured while adding a new task:', error);
+      setSnackbar({
+        open: true,
+        message: 'An error occured while adding a new task!',
+        severity: 'error'
+      });
+    }
     setIsSubmitting(false);
   };
 
@@ -109,9 +160,11 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
               label="Category"
               onChange={handleTodoCategoryChange}
             >
-              <MenuItem value={1}>Work</MenuItem>
-              <MenuItem value={2}>Personal</MenuItem>
-              <MenuItem value={3}>Shopping</MenuItem>
+              {
+                !isTodoCategoriesLoading && todoCategories?.map((category) => (
+                  <MenuItem key={category.id} value={category.id}>{category.title}</MenuItem>
+                ))
+              }
             </Select>
           </FormControl>
         </Grid>
@@ -127,7 +180,7 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
               height: '48px',
             }}
             startIcon={!isSubmitting && <PlusCircleOutlined />}
-            disabled={isSubmitting || !selectedTodoCategory || !todoTitle}
+            disabled={isSubmitting || !todoTitle}
           >
             {isSubmitting ? <CircularProgress /> : 'Add Task'}
           </Button>
@@ -158,6 +211,8 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
           {renderForm()}
         </MainCard>
       )}
+
+      <Toast open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleCloseSnackbar} />
     </>
   );
 }
