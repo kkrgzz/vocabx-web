@@ -6,6 +6,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { TODO_STATUSES } from 'utils/getStatus';
 import dayjs from 'dayjs';
 import axios from 'utils/axios';
+import queryClient from 'utils/queryClient';
 
 function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDetailsDialog, categories, setSnackbar }) {
     const [editedTitle, setEditedTitle] = useState('');
@@ -13,6 +14,10 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
     const [editedStatus, setEditedStatus] = useState('');
     const [editedCategory, setEditedCategory] = useState('');
     const [editedDueDate, setEditedDueDate] = useState(dayjs());
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const maxTitleLength = 64;
+    const maxDescriptionLength = 1024;
 
     useEffect(() => {
         if (selectedTodo) {
@@ -36,20 +41,42 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
         };
 
         try {
-            const response = await axios.put(`/api/todos/${selectedTodo.id}`, updated_data);
+            await axios.put(`/api/todos/${selectedTodo.id}`, updated_data);
 
             setSnackbar({
                 open: true,
                 message: 'Todo saved successfully',
                 severity: 'success',
             });
-            console.log(response);
-            //handleCloseTodoDetailsDialog();
+            
+            queryClient.invalidateQueries(['todos']);
+            handleCloseTodoDetailsDialog();
         } catch (error) {
             console.error(error);
             setSnackbar({
                 open: true,
                 message: 'An error occurred while saving the todo',
+                severity: 'error',
+            });
+        }
+    };
+
+    const handleDeleteButtonClick = async () => {
+        try {
+            await axios.delete(`/api/todos/${selectedTodo.id}`);
+            setSnackbar({
+                open: true,
+                message: 'Todo deleted successfully',
+                severity: 'success',
+            });
+            setConfirmDelete(false);
+            queryClient.invalidateQueries(['todos']);
+            handleCloseTodoDetailsDialog();
+        } catch (error) {
+            console.error(error);
+            setSnackbar({
+                open: true,
+                message: 'An error occurred while deleting the todo',
                 severity: 'error',
             });
         }
@@ -69,6 +96,8 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                         fullWidth
                         value={editedTitle}
                         onChange={(e) => setEditedTitle(e.target.value)}
+                        inputProps={{ maxLength: maxTitleLength }}
+                        helperText={`${editedTitle.length}/${maxTitleLength}`}
                     />
                     <TextField
                         label="Description"
@@ -76,6 +105,8 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                         fullWidth
                         value={editedDescription}
                         onChange={(e) => setEditedDescription(e.target.value)}
+                        inputProps={{ maxLength: maxDescriptionLength }}
+                        helperText={`${editedDescription.length}/${maxDescriptionLength}`}
                     />
 
                     <Stack direction='row' alignItems='center'>
@@ -141,12 +172,29 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                 </Stack>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleSaveButtonClick} color="primary">
-                    Save
-                </Button>
-                <Button onClick={handleCloseTodoDetailsDialog} color="primary">
-                    Close
-                </Button>
+                {confirmDelete ? (
+                    <>
+                        <Typography>Are you sure you want to delete this todo?</Typography>
+                        <Button onClick={handleDeleteButtonClick} color="error">
+                            Confirm Delete
+                        </Button>
+                        <Button onClick={() => setConfirmDelete(false)} color="primary">
+                            Cancel
+                        </Button>
+                    </>
+                ) : (
+                    <>
+                        <Button onClick={() => setConfirmDelete(true)} color="error">
+                            Delete
+                        </Button>
+                        <Button onClick={handleSaveButtonClick} color="primary">
+                            Save
+                        </Button>
+                        <Button onClick={handleCloseTodoDetailsDialog} color="primary">
+                            Close
+                        </Button>
+                    </>
+                )}
             </DialogActions>
         </Dialog>
     );
