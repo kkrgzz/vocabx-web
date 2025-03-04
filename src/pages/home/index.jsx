@@ -12,7 +12,7 @@ function Home() {
         <Grid container spacing={2}>
 
 
-            <Grid item xs={12} md={5} lg={4}>
+            <Grid item xs={12} md={4}>
                 <Grid container alignItems="center" justifyContent="space-between">
                     <Grid item>
                         <Typography variant="h5">Add a new word</Typography>
@@ -22,7 +22,7 @@ function Home() {
                 <AddWord />
             </Grid>
 
-            <Grid item xs={12} md={5} lg={8}>
+            <Grid item xs={12} md={8}>
                 <Grid container alignItems="center" justifyContent="space-between">
                     <Grid item>
                         <Typography variant="h5">Last words</Typography>
@@ -38,10 +38,10 @@ function Home() {
             </Grid>
 
 
-            <Grid item xs={12} md={5} lg={4}>
+            <Grid item xs={12} md={4}>
                 <Grid container alignItems="center" justifyContent="space-between">
                     <Grid item>
-                        <Typography variant="h5">Add Todo</Typography>
+                        <Typography variant="h5">New Task</Typography>
                     </Grid>
                     <Grid item />
                 </Grid>
@@ -51,7 +51,7 @@ function Home() {
             </Grid>
 
 
-            <Grid item xs={12} md={5} lg={4}>
+            <Grid item xs={12} md={4}>
                 <Grid container alignItems="center" justifyContent="space-between">
                     <Grid item>
                         <Typography variant="h5">Recent Todos</Typography>
@@ -68,7 +68,7 @@ function Home() {
             </Grid>
 
 
-            <Grid item xs={12} md={5} lg={4}>
+            <Grid item xs={12} md={4}>
                 <Grid container alignItems="center" justifyContent="space-between">
                     <Grid item>
                         <Typography variant="h5">Recent Moods</Typography>
@@ -76,7 +76,7 @@ function Home() {
                     <Grid item />
                 </Grid>
                 <RecentMoods
-                    moodCount={2}
+                    moodCount={3}
                 />
             </Grid>
         </Grid>
