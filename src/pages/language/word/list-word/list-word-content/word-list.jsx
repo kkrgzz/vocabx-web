@@ -23,7 +23,12 @@ import { getLanguages } from 'utils/crud/LanguageController';
 import WordSentencesCard from './word-sentences-card';
 import Toast from 'components/Toast';
 
-function WordList() {
+function WordList({
+  showLanguageTabs = true,
+  showTopPagination = true,
+  showBottomPagination = true,
+  wordsPerPage = 10
+}) {
   const [selectedWord, setSelectedWord] = useState(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -39,7 +44,7 @@ function WordList() {
   const [dialogTabValue, setDialogTabValue] = useState('1');
   const [page, setPage] = useState(1);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const perPage = 10;
+  const perPage = wordsPerPage;
 
   // Modified query to include language filter
   const { data: words, isLoading, error } = useQuery({
@@ -203,34 +208,40 @@ function WordList() {
   return (
     <>
       {/* Language Tabs */}
-      <TabContext value={languageTabValue}>
-        <Grid container>
-          <Grid item xs={12} sm={6}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <TabList
-                onChange={handleLanguageTabChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="Language tabs"
-              >
-                <Tab label="All Languages" value="1" />
-                {languages?.map((language, index) => (
-                  <Tab
-                    key={language.code}
-                    label={language.name}
-                    value={(index + 2).toString()}
-                  />
-                ))}
-              </TabList>
-            </Box>
+      {
+        showLanguageTabs && <TabContext value={languageTabValue}>
+          <Grid container>
+            <Grid item xs={12} sm={6}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <TabList
+                  onChange={handleLanguageTabChange}
+                  variant="scrollable"
+                  scrollButtons="auto"
+                  aria-label="Language tabs"
+                >
+                  <Tab label="All Languages" value="1" />
+                  {languages?.map((language, index) => (
+                    <Tab
+                      key={language.code}
+                      label={language.name}
+                      value={(index + 2).toString()}
+                    />
+                  ))}
+                </TabList>
+              </Box>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              {
+                showTopPagination &&
+                <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
+                  <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+                </Box>
+              }
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
-              <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
-            </Box>
-          </Grid>
-        </Grid>
-      </TabContext>
+        </TabContext>
+      }
+
 
       <TableContainer component={Paper}>
         <Table>
@@ -341,9 +352,12 @@ function WordList() {
         </TabContext>
       </Dialog>
 
-      <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
-        <Pagination count={words.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
-      </Box>
+      {
+        showBottomPagination &&
+        <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
+          <Pagination count={words.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+        </Box>
+      }
 
       {/* Delete Confirmation Dialog */}
       <WordDeleteDialog
