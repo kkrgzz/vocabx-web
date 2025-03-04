@@ -21,6 +21,7 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
   const [todoPage, setTodoPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [sortBy, setSortBy] = useState('desc');
 
   const { data: todoCategories, isLoading: isTodoCategoriesLoading } = useQuery({
     queryKey: ['todoCategories'],
@@ -28,8 +29,8 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
   });
 
   const { data: todos, isLoading: isTodosLoading } = useQuery({
-    queryKey: ['todos', todoPage, categoryFilter, statusFilter],
-    queryFn: async () => getTodos({ page: todoPage, perPage: 10, sort: 'asc', category: categoryFilter, status: statusFilter }),
+    queryKey: ['todos', todoPage, categoryFilter, statusFilter, sortBy],
+    queryFn: async () => getTodos({ page: todoPage, perPage: 10, sort: sortBy, category: categoryFilter, status: statusFilter }),
   });
 
   const [snackbar, setSnackbar] = useState({
@@ -147,6 +148,22 @@ function ListToDo({ canExpandable = true, initialExpanded = true, showPagination
                     {!isTodoCategoriesLoading && todoCategories?.map((category, index) => (
                       <MenuItem key={index} value={category.id}>{category.title}</MenuItem>
                     ))}
+                  </Select>
+                </FormControl>
+              </Stack>
+
+              <Stack direction='row' alignItems='center' gap={1}>
+                <Typography>
+                  Sort by:
+                </Typography>
+                <FormControl sx={{ minWidth: '148px' }} variant="outlined">
+                  <Select
+                    fullWidth
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <MenuItem value='desc'>Desc</MenuItem>
+                    <MenuItem value='asc'>Asc</MenuItem>
                   </Select>
                 </FormControl>
               </Stack>
