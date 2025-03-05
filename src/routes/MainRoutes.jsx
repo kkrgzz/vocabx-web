@@ -60,7 +60,7 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: <Home />
     },
     {
       path: 'color',
@@ -101,11 +101,11 @@ const MainRoutes = {
       element: <MoodTrackerPage />,
     },
     {
-      path: 'dashboard',
+      path: 'home',
       children: [
         {
           path: 'default',
-          element: <DashboardDefault />
+          element: <Home />
         }
       ]
     },
