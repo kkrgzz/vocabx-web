@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Stack,
   Typography,
   CircularProgress,
 } from '@mui/material';
@@ -18,6 +19,7 @@ import NeutralFaceImage from 'assets/images/moods/confused.png';
 import SmileFaceImage from 'assets/images/moods/smile.png';
 import HappyFaceImage from 'assets/images/moods/happy-face.png';
 import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
+import { getRandomVectorImage } from 'utils/getVectorImages';
 
 // A mapping of mood values to mood details
 const moodData = {
@@ -28,11 +30,29 @@ const moodData = {
   4: { name: 'happy', image: HappyFaceImage, color: '#c3f1cb' },
 };
 
+const randomPlaceholderImage = getRandomVectorImage();
+
 function RecentMoods({ moodCount = 6 }) {
   const { data: moods, isLoading: isMoodsLoading } = useQuery({
     queryKey: ['moods'],
     queryFn: async () => getMoods({ count: moodCount }),
   });
+  
+  if (moods?.length === 0) {
+    return (
+      <Stack
+        height={200}
+        justifyContent="center"
+        alignItems="center"
+        spacing={2}
+        >
+          <img src={randomPlaceholderImage} alt="No moods recorded" width="200"/>
+          <Typography variant="body2" color="textSecondary">
+            No moods recorded yet
+          </Typography>
+      </Stack>
+    );
+  }
 
   return (
     <>
