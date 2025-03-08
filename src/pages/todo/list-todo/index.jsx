@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getTodoCategories } from 'utils/crud/TodoCategoryController';
 import { getTodos } from 'utils/crud/TodoController';
 import Toast from 'components/Toast';
+import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
 
 function ListToDo({
   todosPerPage = 10,
@@ -96,7 +97,7 @@ function ListToDo({
         </Box>
       ) : (
         <Box>
-          <Skeleton animation="wave" variant="rounded" height={30} sx={{ my: 2 }} />
+          <RectangularSkeletonStack count={3} height={30} />
         </Box>
       )}
 
