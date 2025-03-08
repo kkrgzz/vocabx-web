@@ -17,6 +17,7 @@ import SadFaceImage from 'assets/images/moods/sad.png';
 import NeutralFaceImage from 'assets/images/moods/confused.png';
 import SmileFaceImage from 'assets/images/moods/smile.png';
 import HappyFaceImage from 'assets/images/moods/happy-face.png';
+import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
 
 // A mapping of mood values to mood details
 const moodData = {
@@ -35,7 +36,7 @@ function RecentMoods({ moodCount = 6 }) {
 
   return (
     <>
-    {!isMoodsLoading ? (
+      {!isMoodsLoading ? (
         <Grid container spacing={1}>
           {moods.map((entry) => {
             // Get mood details using the mood value
@@ -45,8 +46,8 @@ function RecentMoods({ moodCount = 6 }) {
             return (
               <Grid item xs={12} sm={6} lg={4} sx={{
                 display: 'flex',
-                  maxWidth: '100%',
-                  flexBasis: 'auto'
+                maxWidth: '100%',
+                flexBasis: 'auto'
               }} key={entry.id}>
                 <Card
                   sx={{
@@ -86,11 +87,9 @@ function RecentMoods({ moodCount = 6 }) {
           })}
         </Grid>
       ) : (
-        <Box width="100%" display="flex" alignItems="center" justifyContent="center">
-          <CircularProgress />
-        </Box>
+        <RectangularSkeletonStack count={2} height={200} columns={2} />
       )}
-    
+
     </>
   );
 }

@@ -1,14 +1,16 @@
-import { Skeleton, Stack } from '@mui/material'
-import React from 'react'
+import { Skeleton, Grid } from '@mui/material';
+import React from 'react';
 
-function RectangularSkeletonStack({ count = 3, height = 40 }) {
+function RectangularSkeletonStack({ count = 3, height = 40, columns = 1 }) {
     return (
-        <Stack gap={1}>
+        <Grid container spacing={1}>
             {[...Array(count)].map((_, index) => (
-                <Skeleton key={index} variant="rectangular" height={height} />
+                <Grid item xs={12 / columns} key={index}>
+                    <Skeleton variant="rectangular" height={height} />
+                </Grid>
             ))}
-        </Stack>
-    )
+        </Grid>
+    );
 }
 
-export default RectangularSkeletonStack
+export default RectangularSkeletonStack;
