@@ -7,6 +7,11 @@ import {
   DialogTitle,
   Pagination,
   Grid,
+  Stack,
+  FormControl,
+  Select,
+  MenuItem,
+  Skeleton,
 } from '@mui/material';
 import { EyeOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, TranslationOutlined, DiffOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -22,9 +27,10 @@ import WordTranslationsCard from './word-translations-card';
 import { getLanguages } from 'utils/crud/LanguageController';
 import WordSentencesCard from './word-sentences-card';
 import Toast from 'components/Toast';
+import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
 
 function WordList({
-  showLanguageTabs = true,
+  showLanguageFilter = true,
   showTopPagination = true,
   showBottomPagination = true,
   wordsPerPage = 10
@@ -39,15 +45,16 @@ function WordList({
     message: '',
     severity: 'success'
   });
-  // Separate state for language tabs and dialog tabs
-  const [languageTabValue, setLanguageTabValue] = useState('1');
+
+  // Separate state for language filter and dialog tabs
+  const [languageFilter, setLanguageFilter] = useState('ALL');
   const [dialogTabValue, setDialogTabValue] = useState('1');
   const [page, setPage] = useState(1);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
   const perPage = wordsPerPage;
 
   // Modified query to include language filter
-  const { data: words, isLoading, error } = useQuery({
+  const { data: words, isLoading: isWordsLoading, error } = useQuery({
     queryKey: ['words', page, selectedLanguage],
     queryFn: async () => getWords({
       page: page,
@@ -62,18 +69,19 @@ function WordList({
     queryFn: async () => getLanguages()
   });
 
-  useEffect(() => {
-    if (!isLanguagesLoading && languages) {
-      const index = parseInt(languageTabValue) - 2;
-      const newLanguage = index >= 0 ? languages[index]?.code : null;
-      setSelectedLanguage(newLanguage);
-    }
-  }, [languageTabValue, isLanguagesLoading, languages]);
 
-  const handleLanguageTabChange = (event, newValue) => {
-    setLanguageTabValue(newValue);
-    setPage(1); // Reset to first page when changing languages
-  };
+  const handleLanguageFilter = (new_value) => {
+
+    setLanguageFilter(new_value);
+    var language_code = new_value;
+    if (new_value === 'ALL') {
+      language_code = null;
+    }
+
+    setSelectedLanguage(language_code);
+
+    setPage(1);
+  }
 
   // Modified dialog tab handler
   const handleDialogTabChange = (event, newValue) => {
@@ -197,9 +205,7 @@ function WordList({
     });
   };
 
-  if (isLoading) {
-    return <CircularProgress />;
-  }
+
 
   if (error) {
     return <Typography color="error">Error loading words: {error.message}</Typography>;
@@ -207,78 +213,92 @@ function WordList({
 
   return (
     <>
-      {/* Language Tabs */}
+      {/* Language Filter */}
       {
-        showLanguageTabs && <TabContext value={languageTabValue}>
-          <Grid container>
-            <Grid item xs={12} sm={6}>
+        showLanguageFilter && <Grid container>
+          <Grid item xs={12} sm={6}>
+            {
+              !isLanguagesLoading &&
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <TabList
-                  onChange={handleLanguageTabChange}
-                  variant="scrollable"
-                  scrollButtons="auto"
-                  aria-label="Language tabs"
-                >
-                  <Tab label="All Languages" value="1" />
-                  {languages?.map((language, index) => (
-                    <Tab
-                      key={language.code}
-                      label={language.name}
-                      value={(index + 2).toString()}
-                    />
-                  ))}
-                </TabList>
+                <Stack direction='row' alignItems='center' gap={1}>
+                  <Typography>
+                    Languages:
+                  </Typography>
+                  <FormControl sx={{ minWidth: '148px' }} variant="outlined">
+                    <Select
+                      value={languageFilter}
+                      onChange={(event) => handleLanguageFilter(event.target.value)}
+                    >
+                      <MenuItem value="ALL">All</MenuItem>
+                      {
+                        languages?.map((language, index) => (
+                          <MenuItem key={language.code} value={language.code}>
+                            {language.name}
+                          </MenuItem>
+                        ))
+                      }
+                    </Select>
+                  </FormControl>
+                </Stack>
               </Box>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              {
-                showTopPagination &&
-                <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
-                  <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
-                </Box>
-              }
-            </Grid>
+            }
           </Grid>
-        </TabContext>
+          <Grid item xs={12} sm={6}>
+            {
+              showTopPagination &&
+              <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
+                {
+                  !isWordsLoading && <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+                }
+
+              </Box>
+            }
+          </Grid>
+        </Grid>
       }
 
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Word</TableCell>
-              <TableCell>Language</TableCell>
-              <TableCell align='right'>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {words?.data?.map((word) => (
-              <TableRow
-                key={word.id}
-                onClick={() => handleRowClick(word)}
-                hover
-                sx={{ cursor: 'pointer' }}
-              >
-                <TableCell>{word.word}</TableCell>
-                <TableCell>{word.language?.name}</TableCell>
-                <TableCell align='right'>
-                  <IconButton onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenDetailsDialog(word);
-                  }}>
-                    <EyeOutlined />
-                  </IconButton>
-                  <IconButton onClick={(e) => handleDeleteClick(e, word)}>
-                    <DeleteOutlined />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
+      {
+        isWordsLoading
+          ? (<RectangularSkeletonStack count={3} height={40} />)
+          : (
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Word</TableCell>
+                    <TableCell>Language</TableCell>
+                    <TableCell align='right'>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {words?.data?.map((word) => (
+                    <TableRow
+                      key={word.id}
+                      onClick={() => handleRowClick(word)}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                    >
+                      <TableCell>{word.word}</TableCell>
+                      <TableCell>{word.language?.name}</TableCell>
+                      <TableCell align='right'>
+                        <IconButton onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenDetailsDialog(word);
+                        }}>
+                          <EyeOutlined />
+                        </IconButton>
+                        <IconButton onClick={(e) => handleDeleteClick(e, word)}>
+                          <DeleteOutlined />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )
+      }
       {/* Details Dialog */}
       <Dialog
         open={isDetailsDialogOpen}
@@ -355,7 +375,7 @@ function WordList({
       {
         showBottomPagination &&
         <Box display='flex' alignItems='center' justifyContent='end' mt={2}>
-          <Pagination count={words.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />
+          {!isWordsLoading && <Pagination count={words?.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton />}
         </Box>
       }
 
