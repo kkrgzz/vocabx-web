@@ -18,8 +18,16 @@ function Attributions() {
                 Your support and contributions are greatly appreciated!
             </Typography>
 
+            {/* Illustrations */}
+            <Divider sx={{ mt: 4 }}>
+                <Chip label="Illustrations" color='warning' />
+            </Divider>
+            <Stack direction='column'>
+                <a href="https://undraw.co/illustrations" title="unDraw">unDraw - Thanks for your excellent illustrations.</a>
+            </Stack>
 
-            <Divider sx={{ mt: 4}}>
+            {/* Icons */}
+            <Divider sx={{ mt: 4 }}>
                 <Chip label="Icons" color='warning' />
             </Divider>
             <Stack direction='column'>
@@ -29,6 +37,8 @@ function Attributions() {
                 <a href="https://www.flaticon.com/free-icons/sad" title="sad icons">Sad icons created by Vectors Market - Flaticon</a>
                 <a href="https://www.flaticon.com/free-icons/cry" title="cry icons">Cry icons created by Vectors Market - Flaticon</a>
             </Stack>
+
+
         </MainCard>
     )
 }
