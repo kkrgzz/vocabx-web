@@ -31,7 +31,7 @@ function Home() {
                 </Grid>
                 <WordList
                     wordsPerPage={5}
-                    showLanguageTabs={false}
+                    showLanguageFilter={false}
                     showTopPagination={false}
                     showBottomPagination={false}
                 />
