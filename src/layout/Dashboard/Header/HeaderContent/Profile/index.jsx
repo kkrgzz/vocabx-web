@@ -161,7 +161,7 @@ export default function Profile() {
                     </Grid>
                   </CardContent>
                   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                  <ProfileTab />
+                    <ProfileTab />
                   </Box>
                   {
                     /*
