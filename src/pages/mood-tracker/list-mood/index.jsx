@@ -7,7 +7,6 @@ import {
   CardMedia,
   Stack,
   Typography,
-  CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { getMoods } from 'utils/crud/MoodController';
@@ -37,7 +36,7 @@ function RecentMoods({ moodCount = 6 }) {
     queryKey: ['moods'],
     queryFn: async () => getMoods({ count: moodCount }),
   });
-  
+
   if (moods?.length === 0) {
     return (
       <Stack
@@ -45,11 +44,11 @@ function RecentMoods({ moodCount = 6 }) {
         justifyContent="center"
         alignItems="center"
         spacing={2}
-        >
-          <img src={randomPlaceholderImage} alt="No moods recorded" width="200"/>
-          <Typography variant="body2" color="textSecondary">
-            No moods recorded yet
-          </Typography>
+      >
+        <img src={randomPlaceholderImage} alt="No moods recorded" width="200" />
+        <Typography variant="body2" color="textSecondary">
+          Start logging your moods!
+        </Typography>
       </Stack>
     );
   }
@@ -57,26 +56,21 @@ function RecentMoods({ moodCount = 6 }) {
   return (
     <>
       {!isMoodsLoading ? (
-        <Grid container spacing={1}>
+        <Grid container spacing={2}>
           {moods.map((entry) => {
-            // Get mood details using the mood value
             const moodInfo = moodData[entry.mood_score];
-            // Format the timestamp to a readable format
             const formattedDate = new Date(entry.created_at).toLocaleString();
             return (
-              <Grid item xs={12} sm={6} lg={4} sx={{
-                display: 'flex',
-                maxWidth: '100%',
-                flexBasis: 'auto'
-              }} key={entry.id}>
+              <Grid item xs={12} sm={6} lg={4} key={entry.id}>
                 <Card
+                  elevation={2}
                   sx={{
                     borderRadius: 2,
                     backgroundColor: moodInfo.color,
-                    width: '100%', // Add full width
+                    width: '100%',
                     height: '100%',
                     display: 'flex',
-                    flexDirection: 'column'
+                    flexDirection: 'column',
                   }}
                 >
                   <CardContent>
@@ -85,7 +79,7 @@ function RecentMoods({ moodCount = 6 }) {
                         component="img"
                         image={moodInfo.image}
                         alt={moodInfo.name}
-                        sx={{ width: 50, height: 50, mr: 2 }}
+                        sx={{ width: 60, height: 60, mr: 2 }}
                       />
                       <Typography
                         variant="h6"
@@ -94,7 +88,16 @@ function RecentMoods({ moodCount = 6 }) {
                         {moodInfo.name}
                       </Typography>
                     </Box>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mb: 2,
+                        display: '-webkit-box',
+                        WebkitBoxOrient: 'vertical',
+                        WebkitLineClamp: 2,
+                        overflow: 'hidden',
+                      }}
+                    >
                       {entry.feelings}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -109,7 +112,6 @@ function RecentMoods({ moodCount = 6 }) {
       ) : (
         <RectangularSkeletonStack count={2} height={200} columns={2} />
       )}
-
     </>
   );
 }
