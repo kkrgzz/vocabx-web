@@ -1,5 +1,5 @@
-import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import { Box, Button, Chip, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import { DeleteOutlined, ImportOutlined, PlusOutlined } from '@ant-design/icons';
+import { Box, Button, Chip, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import MainCard from 'components/MainCard';
 import Toast from 'components/Toast';
 import useAuth from 'hooks/useAuth';
@@ -8,7 +8,9 @@ import axios from 'utils/axios';
 import { getLanguages } from 'utils/crud/LanguageController';
 import queryClient from 'utils/queryClient';
 
-function AddWord() {
+function AddWord({
+    showImportButton = true
+}) {
     const { user } = useAuth();
 
     const [translations, setTranslations] = useState([]);
@@ -109,6 +111,41 @@ function AddWord() {
 
         } catch (error) {
             console.error('Error creating word:', error);
+            setSnackbar({
+                open: true,
+                message: 'Error creating word',
+                severity: 'error'
+            });
+        }
+    }
+
+    const handleWordImport = async (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await axios.post('/api/words/import', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                console.log(response);
+                if (response.status === 201) {
+                    setSnackbar({
+                        open: true,
+                        message: `${response?.data?.imported} words imported successfully. ${response?.data?.duplicates} duplicates. ${response?.data?.passed} passed. ${response?.data?.errors} errors.`,
+                        severity: 'success'
+                    });
+
+                    queryClient.invalidateQueries(['words']); // Refetch the words
+                }
+
+            } catch (error) {
+                console.error('Error importing words:', error);
+            }
         }
     }
 
@@ -125,7 +162,21 @@ function AddWord() {
 
     return (
         <MainCard>
-            <Box display='flex' justifyContent='end' mb={2}>
+
+            <Stack direction='row' justifyContent='space-between' spacing={2} mb={2}>
+                {
+                    showImportButton &&
+                    <Button variant="contained" component="label" color='success' startIcon={<ImportOutlined />}>
+                        Import
+                        <input
+                            type="file"
+                            hidden
+                            accept="application/json"
+                            onChange={handleWordImport}
+                        />
+                    </Button>
+                }
+
                 <Button
                     variant="contained"
                     color="primary"
@@ -135,7 +186,7 @@ function AddWord() {
                 >
                     Add Translation
                 </Button>
-            </Box>
+            </Stack>
 
             <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel id="main-language-selection-label">Language</InputLabel>

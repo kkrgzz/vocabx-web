@@ -19,7 +19,9 @@ function Home() {
                     </Grid>
                     <Grid item />
                 </Grid>
-                <AddWord />
+                <AddWord 
+                    showImportButton={false}
+                />
             </Grid>
 
             <Grid item xs={12} md={8}>
