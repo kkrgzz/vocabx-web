@@ -32,7 +32,7 @@ function Profile() {
     const fetchProfile = async () => {
       try {
         const response = await axios.get(`api/user/profile/${baseUserInfo?.id}`);
-
+        console.log(response);
         setProfile({
           first_name: response.data.first_name || '',
           last_name: response.data.last_name || '',
