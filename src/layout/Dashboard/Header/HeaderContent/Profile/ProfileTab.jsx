@@ -17,7 +17,7 @@ import { useNavigate } from 'react-router';
 
 // ==============================|| HEADER PROFILE - PROFILE TAB ||============================== //
 
-export default function ProfileTab() {
+export default function ProfileTab({ logout }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
 
@@ -36,7 +36,7 @@ export default function ProfileTab() {
         </ListItemIcon>
         <ListItemText primary="Profile" />
       </ListItemButton>
-      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1, '/kemalbaba12')}>
+      <ListItemButton selected={selectedIndex === 1} onClick={(event) => logout()}>
         <ListItemIcon>
           <LogoutOutlined />
         </ListItemIcon>

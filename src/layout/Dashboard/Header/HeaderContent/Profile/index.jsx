@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -31,6 +31,8 @@ import UserOutlined from '@ant-design/icons/UserOutlined';
 import avatar1 from 'assets/images/users/fox.png';
 import { useNavigate } from 'react-router';
 import useAuth from 'hooks/useAuth';
+import { useQuery } from '@tanstack/react-query';
+import { getUserInformation } from 'utils/crud/UserController';
 
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
@@ -54,7 +56,18 @@ export default function Profile() {
   const theme = useTheme();
 
   const navigate = useNavigate();
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
+
+  const [user, setUser] = useState([]);
+
+  const { data: userInformation, isLoading: userInformationLoading } = useQuery({
+    queryKey: ['userInformation'],
+    queryFn: async () => getUserInformation()
+  });
+
+  useEffect(() => {
+    if (!userInformationLoading) setUser(userInformation.user);
+  }, [userInformation]);
 
   const handleLogout = async () => {
     try {
@@ -109,9 +122,9 @@ export default function Profile() {
         onClick={handleToggle}
       >
         <Stack direction="row" spacing={1.25} alignItems="center" sx={{ p: 0.5 }}>
-          <Avatar alt="profile user" src={avatar1} size="sm" />
+          <Avatar alt="profile user" src={user?.profile?.profile_image != '' ? user?.profile?.profile_image : avatar1} size="sm" />
           <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-            {user?.length > 0 && user[0]?.username}
+            {!userInformationLoading && user?.username}
           </Typography>
         </Stack>
       </ButtonBase>
@@ -142,11 +155,15 @@ export default function Profile() {
                     <Grid container justifyContent="space-between" alignItems="center">
                       <Grid item>
                         <Stack direction="row" spacing={1.25} alignItems="center">
-                          <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
+                          <Avatar alt="profile user" src={user?.profile?.profile_image != '' ? user?.profile?.profile_image : avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
-                            <Typography variant="h6">{user?.length > 0 && user[0]?.username}</Typography>
+                            <Typography variant="h6">
+                              {!userInformationLoading && (
+                                `${user?.profile?.first_name} ${user?.profile?.last_name}`
+                              )}
+                            </Typography>
                             <Typography variant="body2" color="text.secondary">
-                              Human
+                              {user?.username}
                             </Typography>
                           </Stack>
                         </Stack>
@@ -161,7 +178,9 @@ export default function Profile() {
                     </Grid>
                   </CardContent>
                   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <ProfileTab />
+                    <ProfileTab 
+                      logout={handleLogout}
+                    />
                   </Box>
                   {
                     /*
