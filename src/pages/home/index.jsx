@@ -32,6 +32,7 @@ function Home() {
                 <WordList
                     wordsPerPage={5}
                     showLanguageFilter={false}
+                    showExportButton={false}
                     showTopPagination={false}
                     showBottomPagination={false}
                 />

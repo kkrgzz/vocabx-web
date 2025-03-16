@@ -28,9 +28,11 @@ import { getLanguages } from 'utils/crud/LanguageController';
 import WordSentencesCard from './word-sentences-card';
 import Toast from 'components/Toast';
 import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
+import { Export } from '@phosphor-icons/react';
 
 function WordList({
   showLanguageFilter = true,
+  showExportButton = true,
   showTopPagination = true,
   showBottomPagination = true,
   wordsPerPage = 10
@@ -149,6 +151,31 @@ function WordList({
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await axios.get('api/words/export', {
+        responseType: 'blob', // Important to specify the response type as blob
+      });
+
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'words.json'); // Set the file name
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error exporting words:', error);
+
+      setSnackbar({
+        open: true,
+        message: 'Error exporting words',
+        severity: 'error'
+      });
+    }
+  };
+
   const handleRowClick = (word) => {
     handleOpenDetailsDialog(word);
   };
@@ -216,7 +243,7 @@ function WordList({
       {/* Language Filter */}
       {
         showLanguageFilter && <Grid container>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
             {
               !isLanguagesLoading &&
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -243,7 +270,20 @@ function WordList({
               </Box>
             }
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
+            {
+              showExportButton &&
+              <Button
+                variant='outlined'
+                color='warning'
+                startIcon={<Export />}
+                onClick={() => handleExport()}
+              >
+                Export
+              </Button>
+            }
+          </Grid>
+          <Grid item xs={12} sm={4}>
             {
               showTopPagination &&
               <Box display='flex' alignItems='center' justifyContent='end' mb={2}>
