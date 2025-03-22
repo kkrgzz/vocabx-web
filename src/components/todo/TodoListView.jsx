@@ -21,7 +21,7 @@ function TodoListView({ todos, handleTodoClick }) {
     return (
         <Box display="flex" justifyContent="center">
             <List sx={{ width: '100%' }}>
-                {todos.map(todo => (
+                {todos?.map(todo => (
                     <ListItemButton
                         key={todo.id}
                         onClick={() => handleTodoClick(todo)}
