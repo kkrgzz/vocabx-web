@@ -103,6 +103,7 @@ function TodoDialogView({ selectedTodo, todoDetailsDialogOpen, handleCloseTodoDe
                         label="Description"
                         variant="outlined"
                         fullWidth
+                        multiline
                         value={editedDescription}
                         onChange={(e) => setEditedDescription(e.target.value)}
                         inputProps={{ maxLength: maxDescriptionLength }}

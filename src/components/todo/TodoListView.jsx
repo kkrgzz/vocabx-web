@@ -2,16 +2,25 @@ import React from 'react'
 import { Box, Grid, List, ListItemButton, ListItemText, Chip } from '@mui/material'
 import { TODO_STATUSES } from 'utils/getStatus';
 
-function TodoListView({ todos, selectedTab, handleTodoClick, getCategoryName }) {
+function TodoListView({ todos, handleTodoClick }) {
 
     // Get status config or return a default
     const getStatusConfig = (status) => {
         return TODO_STATUSES[status] || { label: "Unknown", icon: Question, color: "primary" };
     };
 
+    const truncateDescription = (description, wordLimit = 6) => {
+        if (!description) return '';
+        const words = description.split(' ');
+
+        return words.length > wordLimit
+            ? `${words.slice(0, wordLimit).join(' ')}...`
+            : description;
+    }
+
     return (
         <Box display="flex" justifyContent="center">
-            <List sx={{ width: '100%'}}>
+            <List sx={{ width: '100%' }}>
                 {todos.map(todo => (
                     <ListItemButton
                         key={todo.id}
@@ -36,17 +45,15 @@ function TodoListView({ todos, selectedTab, handleTodoClick, getCategoryName }) 
                                 })()}
                             </Grid>
                             <Grid item xs={9}>
+
                                 <ListItemText
                                     primary={todo.title}
-                                    secondary={todo.description}
+                                    secondary={truncateDescription(todo.description)}
                                 />
-                            </Grid>
+                                {todo?.category?.title
+                                    && <Chip variant='outlined' label={todo?.category?.title} />}
 
-                            {selectedTab === 0 && (
-                                <Grid item xs={2} sx={{ display: 'flex', justifyContent: { sm: 'start', md: 'end' }, alignItems: 'center' }}>
-                                    <Chip label={getCategoryName(todo.category_id)} />
-                                </Grid>
-                            )}
+                            </Grid>
 
                         </Grid>
                     </ListItemButton>

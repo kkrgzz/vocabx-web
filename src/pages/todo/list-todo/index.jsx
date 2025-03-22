@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, CircularProgress, FormControl, IconButton, MenuItem, Pagination, Select, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, CircularProgress, FormControl, Grid, IconButton, MenuItem, Pagination, Select, Skeleton, Stack, Typography } from '@mui/material';
 import TodoListView from 'components/todo/TodoListView';
 import TodoGridView from 'components/todo/TodoGridView';
 import TodoDialogView from 'components/todo/TodoDialogView';
@@ -91,7 +91,6 @@ function ListToDo({
             <TodoListView
               todos={todos?.data}
               handleTodoClick={handleTodoClick}
-              getCategoryName={getCategoryName}
             />
           )}
         </Box>
@@ -122,12 +121,13 @@ function ListToDo({
         <Stack direction='row' alignItems='center' justifyContent='space-between' sx={{ mb: 2 }} >
           {
             showFilter &&
-            <Stack direction='row' gap={4} alignItems='center'>
-              <Stack direction='row' alignItems='center' gap={1}>
+            <Grid container spacing={2}>
+
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography>
                   Status:
                 </Typography>
-                <FormControl sx={{ minWidth: '148px' }} variant="outlined">
+                <FormControl sx={{ width: '100%' }} variant="outlined">
                   <Select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
@@ -140,13 +140,13 @@ function ListToDo({
                     ))}
                   </Select>
                 </FormControl>
-              </Stack>
+              </Grid>
 
-              <Stack direction='row' alignItems='center' gap={1}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography>
                   Category:
                 </Typography>
-                <FormControl sx={{ minWidth: '148px' }} variant="outlined">
+                <FormControl sx={{ width: '100%' }} variant="outlined">
                   <Select
                     fullWidth
                     value={categoryFilter}
@@ -158,13 +158,13 @@ function ListToDo({
                     ))}
                   </Select>
                 </FormControl>
-              </Stack>
+              </Grid>
 
-              <Stack direction='row' alignItems='center' gap={1}>
+              <Grid item xs={12} sm={6} md={4}>
                 <Typography>
                   Sort by:
                 </Typography>
-                <FormControl sx={{ minWidth: '148px' }} variant="outlined">
+                <FormControl sx={{ width: '100%' }} variant="outlined">
                   <Select
                     fullWidth
                     value={sortBy}
@@ -174,8 +174,8 @@ function ListToDo({
                     <MenuItem value='asc'>Asc</MenuItem>
                   </Select>
                 </FormControl>
-              </Stack>
-            </Stack>
+              </Grid>
+            </Grid>
           }
 
           {

@@ -124,6 +124,7 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
           <TextField
             label="Description"
             variant="outlined"
+            multiline
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
