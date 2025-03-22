@@ -32,6 +32,7 @@ import { fetcher } from 'utils/axios';
 import { IconButton } from '@mui/material';
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons';
 import Toast from 'components/Toast';
+import { useIntl } from 'react-intl';
 
 // ============================|| JWT - LOGIN ||============================ //
 
@@ -45,6 +46,7 @@ export default function AuthLogin({ forgot }) {
 
   const { isLoggedIn, login } = useAuth();
   const scriptedRef = useScriptRef();
+  const intl = useIntl();
 
   const [showPassword, setShowPassword] = useState(false);
   const handleClickShowPassword = () => {
@@ -90,7 +92,12 @@ export default function AuthLogin({ forgot }) {
               preload('api/menu/dashboard', fetcher); // load menu on login success
             }
           } catch (err) {
-            console.error(err);
+            setSnackbar({
+              open: true,
+              message: intl.formatMessage({ id: "Login failed. Please check your email and password." }),
+              severity: 'error'
+            });
+
             if (scriptedRef.current) {
               setStatus({ success: false });
               setErrors({ submit: err.message });
