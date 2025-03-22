@@ -19,6 +19,7 @@ import { IntlProvider } from 'react-intl';
 // Import Locale Data
 import enMessages from './utils/locales/en.json';
 import trMessages from './utils/locales/tr.json';
+import { flatten } from 'flat';
 
 export default function App() {
   const { locale } = useLanguage();
@@ -28,12 +29,10 @@ export default function App() {
     tr: trMessages
   }
 
-  console.log(messages[locale]);
-
   return (
     <IntlProvider
       locale={locale}
-      messages={messages[locale]}
+      messages={flatten(messages[locale])}
       defaultLocale='en'
     >
       <ThemeCustomization>

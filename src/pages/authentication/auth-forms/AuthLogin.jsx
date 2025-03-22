@@ -133,6 +133,7 @@ export default function AuthLogin({ forgot }) {
                     type={showPassword ? 'text' : 'password'}
                     value={values.password}
                     name="password"
+                    autoComplete='on'
                     onBlur={handleBlur}
                     onChange={handleChange}
                     endAdornment={
