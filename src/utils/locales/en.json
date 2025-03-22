@@ -1,0 +1,8 @@
+{
+    "app": {
+        "title": "VocabX",
+        "description": "VocabX is a simple app to learn new words and their meanings.",
+        "author": "Kemal Karagöz"
+    },
+    "language": "Language" 
+}

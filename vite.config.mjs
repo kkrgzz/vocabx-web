@@ -24,19 +24,32 @@ export default defineConfig(({ mode }) => {
     define: {
       global: 'window'
     },
-     resolve: {
-    alias: [
-      {
-        find: /^~(.+)/,
-        replacement: path.join(process.cwd(), 'node_modules/$1')
-      },
-      {
-        find: /^src(.+)/,
-        replacement: path.join(process.cwd(), 'src/$1')
-      }
-    ]
-  },
+    resolve: {
+      alias: [
+        {
+          find: /^~(.+)/,
+          replacement: path.join(process.cwd(), 'node_modules/$1')
+        },
+        {
+          find: /^src(.+)/,
+          replacement: path.join(process.cwd(), 'src/$1')
+        }
+      ]
+    },
     base: API_URL,
-    plugins: [react(), jsconfigPaths()]
+    plugins: [react({
+      babel: {
+        plugins: [
+          ['formatjs', {
+            idInterpolationPattern: '[sha512:contenthash:base64:6]',
+            ast: true,
+            overrideIdFn: (id, defaultMessage) =>
+              id || require('@formatjs/ts-transformer').generateId(defaultMessage)
+          }]
+        ]
+      }
+    }),
+    jsconfigPaths()
+    ]
   };
 });

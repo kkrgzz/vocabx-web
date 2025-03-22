@@ -1,0 +1,8 @@
+{
+    "app": {
+        "title": "VocabX",
+        "description": "VocabX, yeni kelimeler ve anlamlarını öğrenmek için basit bir uygulamadır.",
+        "author": "Kemal Karagöz"
+    },
+    "language": "Dil" 
+}
