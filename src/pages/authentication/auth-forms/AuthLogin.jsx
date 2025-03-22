@@ -31,11 +31,17 @@ import { fetcher } from 'utils/axios';
 
 import { IconButton } from '@mui/material';
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons';
+import Toast from 'components/Toast';
 
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ forgot }) {
   const [checked, setChecked] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   const { isLoggedIn, login } = useAuth();
   const scriptedRef = useScriptRef();
@@ -47,6 +53,12 @@ export default function AuthLogin({ forgot }) {
 
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({
+      open: false
+    });
   };
 
   return (
@@ -68,6 +80,13 @@ export default function AuthLogin({ forgot }) {
             if (scriptedRef.current) {
               setStatus({ success: true });
               setSubmitting(false);
+
+              setSnackbar({
+                open: true,
+                message: 'Login Successfully',
+                severity: 'success'
+              });
+
               preload('api/menu/dashboard', fetcher); // load menu on login success
             }
           } catch (err) {
@@ -175,6 +194,7 @@ export default function AuthLogin({ forgot }) {
           </form>
         )}
       </Formik>
+      <Toast open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleCloseSnackbar} />
     </>
   );
 }
