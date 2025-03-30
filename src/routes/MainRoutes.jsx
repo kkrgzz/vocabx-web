@@ -45,6 +45,9 @@ const ToDoCategoriesPage = Loadable(lazy(() => import('pages/todo/todo-categorie
 // Mood Tracker Pages
 const MoodTrackerPage = Loadable(lazy(() => import('pages/mood-tracker/index')));
 
+// Timer Pages
+const CountDownTimerPage = Loadable(lazy(() => import('pages/timer/count-down-timer/index')));
+
 // Settings pages
 const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
 
@@ -99,6 +102,15 @@ const MainRoutes = {
     {
       path: 'mood-tracker',
       element: <MoodTrackerPage />,
+    },
+    {
+      path: 'timer',
+      children: [
+        {
+          path: 'count-down-timer',
+          element: <CountDownTimerPage />,
+        }
+      ]
     },
     {
       path: 'home',

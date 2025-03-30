@@ -63,9 +63,18 @@ const tools = {
         {
             id: 'timer',
             title: 'Timer',
-            type: 'item',
+            type: 'collapse',
             url: '/timer',
-            icon: icons.timerIcon
+            icon: icons.timerIcon,
+            children: [
+                {
+                    id: 'count-down-timer',
+                    title: 'Count Down Timer',
+                    type: 'item',
+                    url: '/timer/count-down-timer',
+                    icon: icons.timerIcon,
+                }
+            ]
         }
     ]
 }
