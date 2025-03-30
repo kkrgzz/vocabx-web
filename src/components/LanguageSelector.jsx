@@ -1,51 +1,60 @@
 import { Autocomplete, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
+import JWTContext from 'contexts/JWTContext';
 import PropTypes from 'prop-types';
+import { useContext } from 'react';
 
 const LanguageSelector = ({ languages, value, onChange, variant = 'select', label = 'Language', ...other }) => {
-  if (variant === 'autocomplete') {
+    const { user, isLoggedIn } = useContext(JWTContext);
+
+    const defaultValue = 
+        value ||
+        (user?.profile?.target_language && languages.find(lang => lang.code === user.profile.target_language)) ||
+        null;
+
+    if (variant === 'autocomplete') {
+        return (
+            <FormControl fullWidth {...other}>
+                <Autocomplete
+                    id="language-autocomplete"
+                    options={languages}
+                    getOptionLabel={(option) => `${option.name}`}
+                    value={value || defaultValue}
+                    onChange={(event, newValue) => onChange(newValue)}
+                    isOptionEqualToValue={(option, val) => option.code === val?.code}
+                    renderInput={(params) => (
+                        <TextField {...params} label={label} variant="outlined" />
+                    )}
+                />
+            </FormControl>
+        );
+    }
     return (
-      <FormControl fullWidth {...other}>
-        <Autocomplete
-          id="language-autocomplete"
-          options={languages}
-          getOptionLabel={(option) => `${option.name}`}
-          value={value}
-          onChange={(event, newValue) => onChange(newValue)}
-          isOptionEqualToValue={(option, val) => option.code === val?.code}
-          renderInput={(params) => (
-            <TextField {...params} label={label} variant="outlined" />
-          )}
-        />
-      </FormControl>
+        <FormControl fullWidth {...other}>
+            <InputLabel id="language-select-label">{label}</InputLabel>
+            <Select
+                labelId="language-select-label"
+                id="language-select"
+                value={value?.code || ''}
+                onChange={(e) => {
+                    const selected = languages.find(lang => lang.code === e.target.value);
+                    onChange(selected);
+                }}
+            >
+                {languages?.map(lang => (
+                    <MenuItem key={lang.code} value={lang.code}>
+                        {lang.name}
+                    </MenuItem>
+                ))}
+            </Select>
+        </FormControl>
     );
-  }
-  return (
-    <FormControl fullWidth {...other}>
-      <InputLabel id="language-select-label">{label}</InputLabel>
-      <Select
-        labelId="language-select-label"
-        id="language-select"
-        value={value?.code || ''}
-        onChange={(e) => {
-          const selected = languages.find(lang => lang.code === e.target.value);
-          onChange(selected);
-        }}
-      >
-        {languages?.map(lang => (
-          <MenuItem key={lang.code} value={lang.code}>
-            {lang.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
-  );
 };
 
 LanguageSelector.propTypes = {
-  languages: PropTypes.array.isRequired,
-  value: PropTypes.object,
-  onChange: PropTypes.func.isRequired,
-  variant: PropTypes.oneOf(['select', 'autocomplete'])
+    languages: PropTypes.array.isRequired,
+    value: PropTypes.object,
+    onChange: PropTypes.func.isRequired,
+    variant: PropTypes.oneOf(['select', 'autocomplete'])
 };
 
 export default LanguageSelector;

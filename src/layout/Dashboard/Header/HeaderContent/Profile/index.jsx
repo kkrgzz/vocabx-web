@@ -71,7 +71,7 @@ export default function Profile() {
   useEffect(() => {
     if (!userInformationLoading && userInformation) setUser(userInformation.user);
   }, [userInformation, userInformationLoading]);
-
+  
   const handleLogout = async () => {
     try {
       await logout();
