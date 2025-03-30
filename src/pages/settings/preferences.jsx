@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Button, Chip, Divider, FormControl, InputLabel, MenuItem, Select, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { getLanguages } from 'utils/crud/LanguageController';
+import LanguageSelector from 'components/LanguageSelector';
 
 
 function Preferences() {
@@ -36,42 +37,22 @@ function Preferences() {
         <Chip label="Language Preferences" size="small" color='error' variant='outlined' />
       </Divider>
       <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <FormControl fullWidth>
-          <InputLabel id="mother-tongue-select-label">Mother Tongue</InputLabel>
-          <Select
-            labelId="mother-tongue-select-label"
-            id="mother-tongue-select"
-            value={motherTongue}
-            label="Mother Tongue"
-            onChange={handleMotherTongueChange}
-          >
-            {
-              !isLanguagesLoading && languages.map((language) => (
-                <MenuItem key={language.code} value={language.code}>
-                  {language.name}
-                </MenuItem>
-              ))
-            }
-          </Select>
-        </FormControl>
-        <FormControl fullWidth>
-          <InputLabel id="target-language-select-label">Main Target Language</InputLabel>
-          <Select
-            labelId="target-language-select-label"
-            id="target-language-select"
-            value={targetLanguage}
-            label="Main Target Language"
-            onChange={handleTargetLanguageChange}
-          >
-            {
-              !isLanguagesLoading && languages.map((language) => (
-                <MenuItem key={language.code} value={language.code}>
-                  {language.name}
-                </MenuItem>
-              ))
-            }
-          </Select>
-        </FormControl>
+        <LanguageSelector
+          languages={languages}
+          value={motherTongue}
+          onChange={setMotherTongue}
+          variant="autocomplete"
+          label="Mother Tongue"
+          sx={{ mb: 2 }}
+        />
+        <LanguageSelector
+          languages={languages}
+          value={targetLanguage}
+          onChange={setTargetLanguage}
+          variant="autocomplete"
+          label="Main Target Language"
+          sx={{ mb: 2 }}
+        />
         <Button type="submit" variant="contained" color="primary">
           Save Preferences
         </Button>

@@ -29,6 +29,7 @@ import WordSentencesCard from './word-sentences-card';
 import Toast from 'components/Toast';
 import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
 import { Export } from '@phosphor-icons/react';
+import LanguageSelector from 'components/LanguageSelector';
 
 function WordList({
   showLanguageFilter = true,
@@ -232,6 +233,8 @@ function WordList({
     });
   };
 
+  // Merge an "All" option into your languages list
+  const languageOptions = languages ? [{ code: 'ALL', name: 'All' }, ...languages] : [];
 
 
   if (error) {
@@ -251,21 +254,22 @@ function WordList({
                   <Typography>
                     Languages:
                   </Typography>
-                  <FormControl sx={{ minWidth: '148px' }} variant="outlined">
-                    <Select
-                      value={languageFilter}
-                      onChange={(event) => handleLanguageFilter(event.target.value)}
-                    >
-                      <MenuItem value="ALL">All</MenuItem>
-                      {
-                        languages?.map((language, index) => (
-                          <MenuItem key={language.code} value={language.code}>
-                            {language.name}
-                          </MenuItem>
-                        ))
-                      }
-                    </Select>
-                  </FormControl>
+                  <Box sx={{ minWidth: '148px' }}>
+                    <LanguageSelector
+                      languages={languageOptions}
+                      // If the current filter is ALL, use the "All" object; otherwise, find the matching language
+                      value={languageFilter === 'ALL' ? { code: 'ALL', name: 'All' } : languages.find(lang => lang.code === languageFilter) || null}
+                      onChange={(newLang) => {
+                        // Update state: use null for API filter when "All" is selected
+                        const newValue = newLang ? newLang.code : 'ALL';
+                        setLanguageFilter(newValue);
+                        setSelectedLanguage(newValue === 'ALL' ? null : newValue);
+                        setPage(1);
+                      }}
+                      variant="autocomplete"
+                      label="Languages"
+                    />
+                  </Box>
                 </Stack>
               </Box>
             }

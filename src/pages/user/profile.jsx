@@ -24,6 +24,7 @@ import Toast from 'components/Toast';
 import { Camera } from '@phosphor-icons/react';
 import queryClient from 'utils/queryClient';
 import RectangularSkeletonStack from 'components/RectangularSkeletonStack';
+import LanguageSelector from 'components/LanguageSelector';
 
 const ProfileCard = styled(Paper)(({ theme }) => ({
   maxWidth: 900,
@@ -210,38 +211,28 @@ function Profile() {
                 ? (
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth variant="filled">
-                        <InputLabel>Mother Language</InputLabel>
-                        <Select
-                          name="mother_language"
-                          value={profile.mother_language}
-                          onChange={handleInputChange}
-                          sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
-                        >
-                          {languages?.map(language => (
-                            <MenuItem key={language.code} value={language.code}>
-                              {language.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <LanguageSelector
+                        languages={languages}
+                        value={languages.find(lang => lang.code === profile.mother_language) || null}
+                        onChange={(newLang) =>
+                          setProfile(prev => ({ ...prev, mother_language: newLang ? newLang.code : '' }))
+                        }
+                        variant="autocomplete"
+                        label="Mother Language"
+                        sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
+                      />
                     </Grid>
                     <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth variant="filled">
-                        <InputLabel>Target Language</InputLabel>
-                        <Select
-                          name="target_language"
-                          value={profile.target_language}
-                          onChange={handleInputChange}
-                          sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
-                        >
-                          {languages?.map(language => (
-                            <MenuItem key={language.code} value={language.code}>
-                              {language.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
+                      <LanguageSelector
+                        languages={languages}
+                        value={languages.find(lang => lang.code === profile.target_language) || null}
+                        onChange={(newLang) =>
+                          setProfile(prev => ({ ...prev, target_language: newLang ? newLang.code : '' }))
+                        }
+                        variant="autocomplete"
+                        label="Target Language"
+                        sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
+                      />
                     </Grid>
                   </Grid>
                 ) : (

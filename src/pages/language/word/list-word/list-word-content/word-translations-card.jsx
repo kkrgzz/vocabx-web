@@ -5,6 +5,7 @@ import WordDetailsCard from './word-details-card';
 import axios from 'utils/axios';
 import queryClient from 'utils/queryClient';
 import { useMutation } from '@tanstack/react-query';
+import LanguageSelector from 'components/LanguageSelector';
 
 function WordTranslationsCard({
     editedWord,
@@ -259,27 +260,19 @@ function WordTranslationsCard({
                 changes.hasNewTranslationsCreated && newTranslations.map((translation) => (
                     <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }} key={translation.id}>
                         <Grid item xs={12} sm={2}>
-                            <FormControl fullWidth>
-                                <InputLabel>Language</InputLabel>
-                                <Select
-                                    value={translation.language_code}
-                                    onChange={(e) => updateTranslation(translation.id, 'language_code', e.target.value)}
-                                >
-                                    {languages.map(lang => (
-                                        <MenuItem
-                                            key={lang.code}
-                                            value={lang.code}
-                                            disabled={
-                                                //lang?.code === selectedLanguage?.code ||
-                                                editedWord?.translations.some((t) => t?.language_code === lang?.code) ||
-                                                newTranslations.some((t) => t?.language_code === lang?.code)
-                                            }
-                                        >
-                                            {lang.name}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
+                            <LanguageSelector
+                                languages={languages.filter(lang =>
+                                    !editedWord?.translations.some(t => t?.language_code === lang.code) &&
+                                    !newTranslations.some(t => t?.language_code === lang.code)
+                                )}
+                                value={languages.find(lang => lang.code === translation.language_code) || null}
+                                onChange={(newLang) =>
+                                    updateTranslation(translation.id, 'language_code', newLang ? newLang.code : '')
+                                }
+                                variant="autocomplete"
+                                label="Language"
+                                sx={{ mb: 2 }}
+                            />
                         </Grid>
                         <Grid item xs={10} sm={9}>
                             <TextField

@@ -1,5 +1,6 @@
 import { DeleteOutlined, ImportOutlined, PlusOutlined } from '@ant-design/icons';
-import { Box, Button, Chip, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, Chip, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
+import LanguageSelector from 'components/LanguageSelector';
 import MainCard from 'components/MainCard';
 import Toast from 'components/Toast';
 import useAuth from 'hooks/useAuth';
@@ -188,26 +189,14 @@ function AddWord({
                 </Button>
             </Stack>
 
-            <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel id="main-language-selection-label">Language</InputLabel>
-                <Select
-                    labelId="main-language-selection-label"
-                    id="main-language-select"
-                    // We'll store or use the code, but keep the entire object in state if needed
-                    value={selectedLanguage?.code ?? ''}
-                    onChange={(e) => {
-                        // Look up the entire language object from the selected code
-                        const newLangObj = languages.find(lang => lang.code === e.target.value);
-                        setSelectedLanguage(newLangObj);
-                    }}
-                >
-                    {languages.map((lang) => (
-                        <MenuItem key={lang.code} value={lang.code} disabled={lang?.code === selectedLanguage?.code}>
-                            {lang.name}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
+            <LanguageSelector
+                languages={languages}
+                value={selectedLanguage}
+                onChange={setSelectedLanguage}
+                variant="autocomplete"
+                label="Language"
+                sx={{ mb: 2 }}
+            />
 
             <TextField
                 id="word-input"
@@ -227,27 +216,18 @@ function AddWord({
                     {translations.map((translation) => (
                         <Grid key={translation.id} container spacing={2} sx={{ mb: 2 }} alignItems="center">
                             <Grid item xs={12} sm={2}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Language</InputLabel>
-                                    <Select
-                                        value={translation.language_code}
-                                        onChange={(e) => updateTranslation(translation.id, 'language_code', e.target.value)}
-                                    >
-                                        {languages.map(lang => (
-                                            <MenuItem
-                                                key={lang.code}
-                                                value={lang.code}
-                                                disabled={
-                                                    //lang?.code === selectedLanguage?.code ||
-                                                    translations.some((t) => t?.language_code === lang?.code)
-                                                }
-                                            >
-                                                {lang.name}
-                                            </MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
+                                <LanguageSelector
+                                    languages={languages}
+                                    value={languages.find(lang => lang.code === translation.language_code) || null}
+                                    onChange={(newLang) =>
+                                        updateTranslation(translation.id, 'language_code', newLang ? newLang.code : '')
+                                    }
+                                    variant="autocomplete"
+                                    label="Language"
+                                    sx={{ mb: 2 }}
+                                />
                             </Grid>
+
                             <Grid item xs={10} sm={9}>
                                 <TextField
                                     fullWidth
