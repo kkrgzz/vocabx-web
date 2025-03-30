@@ -62,12 +62,15 @@ export default function Profile() {
 
   const { data: userInformation, isLoading: userInformationLoading } = useQuery({
     queryKey: ['userInformation'],
-    queryFn: async () => getUserInformation()
+    queryFn: async () => getUserInformation(),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
-    if (!userInformationLoading) setUser(userInformation.user);
-  }, [userInformation]);
+    if (!userInformationLoading && userInformation) setUser(userInformation.user);
+  }, [userInformation, userInformationLoading]);
 
   const handleLogout = async () => {
     try {
