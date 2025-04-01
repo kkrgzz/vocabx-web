@@ -1,15 +1,23 @@
 import { Autocomplete, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material';
 import JWTContext from 'contexts/JWTContext';
 import PropTypes from 'prop-types';
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 
 const LanguageSelector = ({ languages, value, onChange, variant = 'select', label = 'Language', ...other }) => {
     const { user, isLoggedIn } = useContext(JWTContext);
 
-    const defaultValue = 
-        value ||
-        (user?.profile?.target_language && languages.find(lang => lang.code === user.profile.target_language)) ||
-        null;
+    useEffect(()=>{
+        if (!value && user?.profile?.target_language) {
+            const lang = languages.find(lang => lang.code === user.profile.target_language);
+            if (lang) {
+                onChange(lang);
+            }
+        }
+    }, [user, languages, value, onChange]);
+
+    const defaultValue =
+        value || null;
+
 
     if (variant === 'autocomplete') {
         return (
