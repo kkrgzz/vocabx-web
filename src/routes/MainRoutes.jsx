@@ -54,6 +54,7 @@ const Preferences = Loadable(lazy(() => import('pages/settings/preferences')));
 // Other Pages
 const AttributionsPage = Loadable(lazy(() => import('pages/others/attributions')));
 const AboutPage = Loadable(lazy(() => import('pages/others/about')));
+const EncryptionPlayground = Loadable(lazy(() => import('pages/encryption/index')));
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -175,6 +176,10 @@ const MainRoutes = {
           element: <ProfilePage />
         }
       ]
+    },
+    {
+      path: 'encryption-playground',
+      element: <EncryptionPlayground />
     },
     {
       path: 'attributions',

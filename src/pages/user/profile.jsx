@@ -12,7 +12,8 @@ import {
   Box,
   Paper,
   Divider,
-  IconButton
+  IconButton,
+  Alert
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
@@ -245,6 +246,15 @@ function Profile() {
           <Box>
             <SectionTitle variant="h6">AI Assistant Settings</SectionTitle>
             <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Alert variant='filled' severity='warning'>
+                  The application can currently only work with OpenRouter API keys.
+                  The user is responsible for the billing of the API keys you will create via OpenRouter.
+                  You can generate free-to-use AI keys via OpenRouter and use them as you wish.
+                  You can use the <a href='https://openrouter.ai/models' target='_blank'>link here</a> to review the models.
+                  Only free models are listed in the select box below.
+                </Alert>
+              </Grid>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth variant="filled">
                   <InputLabel>Preferred Model</InputLabel>

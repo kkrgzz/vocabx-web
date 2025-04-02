@@ -1,4 +1,5 @@
 import { CheckCircleTwoTone, ClockCircleTwoTone,  GoldTwoTone,  HeartTwoTone, HourglassTwoTone, NumberOutlined, ProjectTwoTone, ReconciliationOutlined, ReconciliationTwoTone } from "@ant-design/icons";
+import { Key } from "@phosphor-icons/react";
 
 const icons = {
     noteIcon: ProjectTwoTone,
@@ -8,6 +9,7 @@ const icons = {
     timerIcon: ClockCircleTwoTone,
     todoCategoriesIcon: NumberOutlined,
     todoDashboardIcon: ReconciliationOutlined,
+    encryptionIcon: Key,
 }
 
 const tools = {
@@ -75,6 +77,13 @@ const tools = {
                     icon: icons.timerIcon,
                 }
             ]
+        },
+        {
+            id: 'encrpytion-playground',
+            title: 'Encryption Playground',
+            type: 'item',
+            url: '/encryption-playground',
+            icon: icons.encryptionIcon,
         }
     ]
 }
