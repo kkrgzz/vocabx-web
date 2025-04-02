@@ -243,7 +243,7 @@ function Profile() {
 
           {/* API Settings */}
           <Box>
-            <SectionTitle variant="h6">API Settings</SectionTitle>
+            <SectionTitle variant="h6">AI Assistant Settings</SectionTitle>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <FormControl fullWidth variant="filled">
