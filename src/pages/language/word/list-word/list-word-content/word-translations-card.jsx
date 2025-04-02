@@ -269,6 +269,7 @@ function WordTranslationsCard({
                                 onChange={(newLang) =>
                                     updateTranslation(translation.id, 'language_code', newLang ? newLang.code : '')
                                 }
+                                useMotherLang
                                 variant="autocomplete"
                                 label="Language"
                                 sx={{ mb: 2 }}

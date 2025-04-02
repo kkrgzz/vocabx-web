@@ -3,12 +3,18 @@ import JWTContext from 'contexts/JWTContext';
 import PropTypes from 'prop-types';
 import { useContext, useEffect } from 'react';
 
-const LanguageSelector = ({ languages, value, onChange, variant = 'select', label = 'Language', ...other }) => {
+const LanguageSelector = ({ languages, value, onChange, useTargetLang = false, useMotherLang = false, variant = 'select', label = 'Language', ...other }) => {
     const { user, isLoggedIn } = useContext(JWTContext);
 
     useEffect(()=>{
+        var lang = null;
+        var initialLang = null;
+
+        if (useTargetLang && isLoggedIn && user?.profile?.target_language) initialLang = user.profile.target_language;
+        if (useMotherLang && isLoggedIn && user?.profile?.mother_language) initialLang = user.profile.mother_language;
+        
         if (!value && user?.profile?.target_language) {
-            const lang = languages.find(lang => lang.code === user.profile.target_language);
+            lang = languages.find(lang => lang.code === initialLang);
             if (lang) {
                 onChange(lang);
             }

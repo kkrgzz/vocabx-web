@@ -193,6 +193,7 @@ function AddWord({
                 languages={languages}
                 value={selectedLanguage}
                 onChange={setSelectedLanguage}
+                useTargetLang
                 variant="autocomplete"
                 label="Language"
                 sx={{ mb: 2 }}
@@ -222,6 +223,7 @@ function AddWord({
                                     onChange={(newLang) =>
                                         updateTranslation(translation.id, 'language_code', newLang ? newLang.code : '')
                                     }
+                                    useMotherLang
                                     variant="autocomplete"
                                     label="Language"
                                     sx={{ mb: 2 }}
