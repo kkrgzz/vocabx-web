@@ -1,9 +1,9 @@
 // assets
-import { UserOutlined } from '@ant-design/icons';
-
+import { QuestionCircleOutlined, UserOutlined } from '@ant-design/icons';
 // icons
 const icons = {
   UserOutlined,
+  QuestionCircleOutlined,
 };
 
 // ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
@@ -20,7 +20,15 @@ const pages = {
       url: '/settings/profile',
       icon: icons.UserOutlined,
       breadcrumbs: true
-    }
+    },
+    {
+      id: 'turorial',
+      title: 'Tutorial',
+      type: 'item',
+      url: '/settings/tutorial',
+      breadcrumbs: true,
+      icon: icons.QuestionCircleOutlined
+  }
   ]
 };
 
