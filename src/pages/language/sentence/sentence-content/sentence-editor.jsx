@@ -1,5 +1,5 @@
 import { CheckOutlined, CloseOutlined, DeleteOutlined, DownOutlined, EditOutlined } from '@ant-design/icons';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, Tab, TextField, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, Tab, TextField, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { getWords } from 'utils/crud/WordController';
@@ -8,6 +8,9 @@ import queryClient from 'utils/queryClient';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { getLanguages } from 'utils/crud/LanguageController';
 import Toast from 'components/Toast';
+import { Brain } from '@phosphor-icons/react';
+import { AIClientWrapper } from 'utils/ai';
+import useAuth from 'hooks/useAuth';
 
 function SentenceEditor() {
     const theme = useTheme();
@@ -18,9 +21,13 @@ function SentenceEditor() {
         severity: 'success'
     });
 
+    const { user } = useAuth();
+    const aiClient = new AIClientWrapper(user?.profile?.api_key, user?.profile?.preferred_model_id);
+
     const [page, setPage] = useState(1);
     const [tabValue, setTabValue] = useState('1');
     const [selectedLanguage, setSelectedLanguage] = useState(null);
+    const [isSentenceInputDisabled, setIsSentenceInputDisabled] = useState(false);
 
     const { data: wordsData, isLoading, isError } = useQuery({
         queryKey: ['words', page, selectedLanguage], // Include page and selectedLanguage in queryKey
@@ -196,6 +203,20 @@ function SentenceEditor() {
         setNewSentence({ word_id: null, text: '' });
     };
 
+
+    const generateNewSentenceWithAI = async (word) => {
+        try {
+            setIsSentenceInputDisabled(true);
+            const prompt = `You shoud write a sentence with the word "${word.word}". This words is from "${word.language_code}" language. I am trying to learn this word. Please write your example sentence in "${word.language_code}" language. You should write just a single sentence. Do not write any instructions or explanations.`;
+            const response = await aiClient.getCompletion(prompt);
+            setNewSentence(prev => ({ ...prev, text: response.content }));
+        } catch (error) {
+            console.log(error);
+        } finally {
+            setIsSentenceInputDisabled(false);
+        }
+    }
+    
     const handlePageChange = (event, value) => {
         setPage(value);
     }
@@ -270,16 +291,32 @@ function SentenceEditor() {
                                         value={newSentence.text}
                                         onChange={(e) => setNewSentence(prev => ({ ...prev, text: e.target.value }))}
                                         placeholder="Enter new sentence"
+                                        disabled={isSentenceInputDisabled}
                                         autoFocus
                                     />
                                 </Grid>
                                 <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1 }}>
-                                    <IconButton onClick={saveNewSentence} color="success">
-                                        <CheckOutlined />
-                                    </IconButton>
-                                    <IconButton onClick={cancelNewSentence} color="error">
-                                        <CloseOutlined />
-                                    </IconButton>
+                                    <Tooltip title="Generate a sentence with AI">
+                                        {
+                                            isSentenceInputDisabled
+                                                ? (<CircularProgress size={24} />)
+                                                : (
+                                                    <IconButton onClick={() => generateNewSentenceWithAI(word)} color='primary' disabled={isSentenceInputDisabled}>
+                                                        <Brain />
+                                                    </IconButton>
+                                                )
+                                        }
+                                    </Tooltip>
+                                    <Tooltip title="Save">
+                                        <IconButton onClick={saveNewSentence} color="success">
+                                            <CheckOutlined />
+                                        </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Cancel">
+                                        <IconButton onClick={cancelNewSentence} color="error">
+                                            <CloseOutlined />
+                                        </IconButton>
+                                    </Tooltip>
                                 </Grid>
                             </Grid>
                         ) : (
