@@ -14,7 +14,8 @@ import {
   Divider,
   IconButton,
   Alert,
-  CircularProgress
+  CircularProgress,
+  Switch
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
@@ -95,6 +96,7 @@ function Profile() {
     profile_image: '',
     mother_language: '',
     target_language: '',
+    is_ai_assistant_enabled: false,
     api_key: '',
     preferred_model_id: ''
   });
@@ -124,6 +126,7 @@ function Profile() {
         profile_image: user?.profile_image || '',
         mother_language: user?.mother_language || '',
         target_language: user?.target_language || '',
+        is_ai_assistant_enabled: Boolean(user?.is_ai_assistant_enabled),
         api_key: user?.api_key || '',
         preferred_model_id: user?.preferred_model_id || ''
       });
@@ -131,8 +134,11 @@ function Profile() {
   }, [userInformation]);
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    const { name, type, value, checked } = e.target;
+
+    const newValue = type === 'checkbox' ? checked : value;
+
+    setProfile(prev => ({ ...prev, [name]: newValue }));
   };
 
   const handleFileUpload = (e) => {
@@ -151,11 +157,20 @@ function Profile() {
     try {
       const formData = new FormData();
       formData.append('_method', 'PUT');
-      Object.keys(profile).forEach(key => {
+
+
+      // Convert boolean to integer for Laravel
+      const profileData = {
+        ...profile,
+        is_ai_assistant_enabled: profile.is_ai_assistant_enabled ? 1 : 0
+      };
+
+      Object.keys(profileData).forEach(key => {
         if (key !== 'profile_image') {
-          formData.append(key, profile[key] || '');
+          formData.append(key, profileData[key] || '');
         }
       });
+
       if (newProfileImage) {
         formData.append('profile_image', newProfileImage);
       }
@@ -224,6 +239,8 @@ function Profile() {
       setAiPlaygroundResponseLoading(false);
     }
   };
+
+  console.log(profile);
 
   return (
     <>
@@ -337,82 +354,98 @@ function Profile() {
                 <ProfileCard>
                   <Box>
                     <SectionTitle variant="h6">AI Assistant Settings</SectionTitle>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <Alert variant='filled' severity='warning'>
-                          The application can currently only work with OpenRouter API keys.
-                          The user is responsible for the billing of the API keys you will create via OpenRouter.
-                          You can generate free-to-use AI keys via OpenRouter and use them as you wish.
-                          You can use the <a href='https://openrouter.ai/models' target='_blank'>link here</a> to review the models.
-                          Only free models are listed in the select box below.
-                        </Alert>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <FormControl fullWidth variant="filled">
-                          <InputLabel>Preferred Model</InputLabel>
-                          <Select
-                            name="preferred_model_id"
-                            value={profile.preferred_model_id}
-                            onChange={handleInputChange}
-                            sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
-                          >
-                            {
-                              openRouterModels?.map(model => (
-                                <MenuItem key={model.id} value={model.id}>{model?.name}</MenuItem>
-                              ))
-                            }
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="API Key"
-                          name="api_key"
-                          value={profile.api_key}
-                          onChange={handleInputChange}
-                          variant="filled"
-                          helperText="Leave empty for default"
-                          sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
-                        />
-                      </Grid>
+                    <Grid item xs={12}>
+                      Enable AI Assistant
+                      <Switch
+                        name='is_ai_assistant_enabled'
+                        checked={profile.is_ai_assistant_enabled}
+                        onChange={handleInputChange}
+                      />
                     </Grid>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <TextField
-                          value={aiPlaygroundText}
-                          onChange={(e) => setAiPlaygroundText(e.target.value)}
-                          label="AI Playground Text"
-                          variant="filled"
-                          multiline
-                          rows={4}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Button
-                          variant='contained'
-                          onClick={handleAIPlaygroundClick}>
-                          Send
-                        </Button>
-                      </Grid>
-                      {aiPlaygroundResponseLoading
-                        ? (<CircularProgress />)
-                        : (<Grid item xs={12}>
-                          {
-                            aiPlaygroundResponse && <Grid container spacing={2}>
-                              <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Elapsed Time: {aiPlaygroundResponse?.elapsed_time} ms</Typography></Grid>
-                              <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Completion Tokens: {aiPlaygroundResponse?.usage?.completion_tokens}</Typography></Grid>
-                              <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Prompt Tokens: {aiPlaygroundResponse?.usage?.prompt_tokens}</Typography></Grid>
-                              <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Total Tokens: {aiPlaygroundResponse?.usage?.total_tokens}</Typography></Grid>
+                    {
+                      profile.is_ai_assistant_enabled
+                      && (
+                        <>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                              <Alert variant='filled' severity='warning'>
+                                The application can currently only work with OpenRouter API keys.
+                                The user is responsible for the billing of the API keys you will create via OpenRouter.
+                                You can generate free-to-use AI keys via OpenRouter and use them as you wish.
+                                You can use the <a href='https://openrouter.ai/models' target='_blank'>link here</a> to review the models.
+                                Only free models are listed in the select box below.
+                              </Alert>
                             </Grid>
-                          }
-                          <Box>
-                            <Markdown remarkPlugins={[remarkGfm]}>{aiPlaygroundResponse?.content}</Markdown>
-                          </Box>
-                        </Grid>)
-                      }
-                    </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <FormControl fullWidth variant="filled">
+                                <InputLabel>Preferred Model</InputLabel>
+                                <Select
+                                  name="preferred_model_id"
+                                  value={profile.preferred_model_id}
+                                  onChange={handleInputChange}
+                                  sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
+                                >
+                                  {
+                                    openRouterModels?.map(model => (
+                                      <MenuItem key={model.id} value={model.id}>{model?.name}</MenuItem>
+                                    ))
+                                  }
+                                </Select>
+                              </FormControl>
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                              <TextField
+                                fullWidth
+                                label="API Key"
+                                name="api_key"
+                                value={profile.api_key}
+                                onChange={handleInputChange}
+                                variant="filled"
+                                helperText="Leave empty for default"
+                                sx={{ bgcolor: 'grey.50', borderRadius: 2 }}
+                              />
+                            </Grid>
+                          </Grid>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                              <TextField
+                                value={aiPlaygroundText}
+                                onChange={(e) => setAiPlaygroundText(e.target.value)}
+                                label="AI Playground Text"
+                                variant="filled"
+                                multiline
+                                rows={4}
+                                fullWidth
+                              />
+                            </Grid>
+                            <Grid item xs={12}>
+                              <Button
+                                variant='contained'
+                                onClick={handleAIPlaygroundClick}>
+                                Send
+                              </Button>
+                            </Grid>
+                            {aiPlaygroundResponseLoading
+                              ? (<CircularProgress />)
+                              : (<Grid item xs={12}>
+                                {
+                                  aiPlaygroundResponse && <Grid container spacing={2}>
+                                    <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Elapsed Time: {aiPlaygroundResponse?.elapsed_time} ms</Typography></Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Completion Tokens: {aiPlaygroundResponse?.usage?.completion_tokens}</Typography></Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Prompt Tokens: {aiPlaygroundResponse?.usage?.prompt_tokens}</Typography></Grid>
+                                    <Grid item xs={12} sm={6} md={4} lg={3}><Typography variant='caption'>Total Tokens: {aiPlaygroundResponse?.usage?.total_tokens}</Typography></Grid>
+                                  </Grid>
+                                }
+                                <Box>
+                                  <Markdown remarkPlugins={[remarkGfm]}>{aiPlaygroundResponse?.content}</Markdown>
+                                </Box>
+                              </Grid>)
+                            }
+                          </Grid>
+                        </>
+                      )
+                    }
+
                   </Box>
                 </ProfileCard>
               )
