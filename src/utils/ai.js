@@ -27,7 +27,7 @@ export class AIClientWrapper {
     const response = completion?.choices[0]?.message || null;
     response['usage'] = completion?.usage || null;
     response['elapsed_time'] = (endTime - startTime).toFixed(2);
-    console.log(response);
+    
     return response;
   }
 }
