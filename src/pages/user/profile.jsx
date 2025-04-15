@@ -240,8 +240,6 @@ function Profile() {
     }
   };
 
-  console.log(profile);
-
   return (
     <>
       <ProfileContainer>
