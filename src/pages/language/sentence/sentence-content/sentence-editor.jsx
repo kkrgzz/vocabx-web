@@ -1,7 +1,6 @@
 // sentence-editor.jsx
 import { CheckOutlined, CloseOutlined, DeleteOutlined, DownOutlined, EditOutlined } from '@ant-design/icons';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Grid, IconButton, Pagination, Tab, TextField, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
-// Import useQueryClient
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Pagination, Tab, TextField, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { getWords } from 'utils/crud/WordController';
@@ -11,31 +10,35 @@ import { getLanguages } from 'utils/crud/LanguageController';
 import Toast from 'components/Toast';
 import useAuth from 'hooks/useAuth';
 import AICompletionButton from 'components/ai-assistant/AICompletionButton';
+import AISentenceReviewButton from 'components/ai-assistant/AISentenceReviewButton';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Eye, MagicWand, XCircle } from '@phosphor-icons/react'; // MagicWand might not be needed now
 
 function SentenceEditor() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-    const [snackbar, setSnackbar] = useState({
-        open: false,
-        message: '',
-        severity: 'success'
-    });
-
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
     const { user } = useAuth();
-
     const [page, setPage] = useState(1);
     const [tabValue, setTabValue] = useState('1');
     const [selectedLanguage, setSelectedLanguage] = useState(null);
-    const [isAIGenerating, setIsAIGenerating] = useState(false); // Renamed for clarity
+    const [isAIGenerating, setIsAIGenerating] = useState(false);
 
-    // Get QueryClient instance
+    // --- AI Review Dialog State ---
+    const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+    const [viewingReviewContent, setViewingReviewContent] = useState(''); // Content to display in dialog
+    const [viewingSentenceId, setViewingSentenceId] = useState(null);   // Which sentence's review is shown
+    const [isSavingReview, setIsSavingReview] = useState(false); // Track if review is being saved
+
     const queryClient = useQueryClient();
 
     // --- React Query Setup ---
-    const { data: wordsData, isLoading, isError, error: wordsError } = useQuery({
+    const { data: wordsData, isLoading, isError, error: wordsError, refetch: refetchWords } = useQuery({
         queryKey: ['words', page, selectedLanguage],
+        // Ensure your backend returns sentences with ai_review field
         queryFn: () => getWords({ page: page, perPage: 20, sort: 'desc', language_code: selectedLanguage }),
-        keepPreviousData: true, // Keeps previous data visible while fetching next page
+        keepPreviousData: true,
     });
 
     const { data: languages, isLoading: isLanguagesLoading } = useQuery({
@@ -45,44 +48,69 @@ function SentenceEditor() {
 
     // Function to invalidate and refetch words query
     const invalidateWordsQuery = () => {
+        // Invalidate the specific query based on current page and language
         queryClient.invalidateQueries({ queryKey: ['words', page, selectedLanguage] });
+        // Optionally trigger an immediate refetch if needed, though invalidation often suffices
+        // refetchWords();
     };
 
-    // --- Mutations (Updated) ---
+    // --- Mutations ---
     const updateSentenceMutation = useMutation({
-        mutationFn: async (sentenceData) => axios.put(`api/sentences/${sentenceData.sentenceId}`, {
-            sentence: sentenceData.text // Only send the text for updates
-        }),
-        onSuccess: () => {
-            setSnackbar({ open: true, message: 'Sentence updated successfully', severity: 'success' });
-            invalidateWordsQuery(); // Refetch data on success
-            cancelEditing(); // Close editing form
+        // Accepts partial data { sentenceId, text?, ai_review? }
+        mutationFn: async (sentenceData) => {
+            const { sentenceId, ...updatePayload } = sentenceData; // Separate ID from payload
+            return axios.put(`api/sentences/${sentenceId}`, updatePayload);
         },
-        onError: (error) => {
+        onMutate: (variables) => {
+            // If updating review, set saving state
+            if ('ai_review' in variables) {
+                setIsSavingReview(true);
+            }
+        },
+        onSuccess: (data, variables) => {
+            // Check what was updated
+            if ('text' in variables) {
+                setSnackbar({ open: true, message: 'Sentence updated successfully', severity: 'success' });
+                cancelEditing(); // Close editing form if text was updated
+            } else if ('ai_review' in variables) {
+                setSnackbar({ open: true, message: 'AI review saved successfully', severity: 'success' });
+                // Review saved, now show it in the dialog
+                setViewingReviewContent(variables.ai_review); // Display the review content just saved
+                setViewingSentenceId(variables.sentenceId);   // Set the ID for context
+                setReviewDialogOpen(true);                   // Open the dialog
+            }
+            invalidateWordsQuery(); // Refetch data to show updated review state (e.g., view icon)
+        },
+        onError: (error, variables) => {
             console.error("Error updating sentence:", error);
-            setSnackbar({ open: true, message: `Error updating sentence: ${error?.response?.data?.message || error.message}`, severity: 'error' });
+            const action = 'text' in variables ? 'updating sentence' : 'saving AI review';
+            setSnackbar({ open: true, message: `Error ${action}: ${error?.response?.data?.message || error.message}`, severity: 'error' });
+        },
+        onSettled: (data, error, variables) => {
+            // Always reset saving state when mutation finishes
+            if ('ai_review' in variables) {
+                setIsSavingReview(false);
+            }
         }
     });
 
+    // (createSentenceMutation and deleteSentenceMutation remain largely the same)
     const createSentenceMutation = useMutation({
-        // mutationFn receives the full sentence object including AI data
         mutationFn: async (newSentenceData) => {
             const payload = {
                 word_id: newSentenceData.word_id,
-                sentence: newSentenceData.text, // The actual sentence text
-                // Include the AI metadata fields
-                is_ai_generated: newSentenceData.is_ai_generated || 0, // Default to 0 if not set
+                sentence: newSentenceData.text,
+                is_ai_generated: newSentenceData.is_ai_generated || 0,
                 ai_elapsed_time: newSentenceData.ai_elapsed_time,
                 ai_prompt_tokens: newSentenceData.ai_prompt_tokens,
                 ai_completion_tokens: newSentenceData.ai_completion_tokens,
             };
-            
             return axios.post(`api/sentences`, payload);
         },
         onSuccess: () => {
             setSnackbar({ open: true, message: 'Sentence created successfully', severity: 'success' });
-            invalidateWordsQuery(); // Refetch data on success
-            cancelNewSentence(); // Close the new sentence form
+            invalidateWordsQuery();
+            cancelNewSentence();
         },
         onError: (error) => {
             console.error("Error creating sentence:", error);
@@ -94,7 +122,7 @@ function SentenceEditor() {
         mutationFn: async (sentenceId) => axios.delete(`api/sentences/${sentenceId}`),
         onSuccess: () => {
             setSnackbar({ open: true, message: 'Sentence deleted successfully', severity: 'success' });
-            invalidateWordsQuery(); // Refetch data on success
+            invalidateWordsQuery();
         },
         onError: (error) => {
             console.error("Error deleting sentence:", error);
@@ -102,124 +130,99 @@ function SentenceEditor() {
         }
     });
 
+    // --- Local State ---
     const [expanded, setExpanded] = useState(null);
     const [editing, setEditing] = useState({ word_id: null, sentenceId: null, text: '' });
-    // Updated newSentence state structure slightly for clarity
-    const initialNewSentenceState = {
-        word_id: null,
-        text: '',
-        is_ai_generated: 0,
-        ai_elapsed_time: 0,
-        ai_prompt_tokens: 0,
-        ai_completion_tokens: 0
-    };
+    const initialNewSentenceState = { word_id: null, text: '', is_ai_generated: 0, ai_elapsed_time: 0, ai_prompt_tokens: 0, ai_completion_tokens: 0 };
     const [newSentence, setNewSentence] = useState(initialNewSentenceState);
 
+    // --- Effects ---
     useEffect(() => {
-        // Reset page to 1 when language changes
         if (!isLanguagesLoading && languages) {
             const index = parseInt(tabValue) - 2;
             const selectedLang = index >= 0 ? languages[index]?.code : null;
-            if (selectedLanguage !== selectedLang) { // Only update if language actually changed
-                 setSelectedLanguage(selectedLang);
-                 setPage(1); // Reset page when language tab changes
-                 setExpanded(null); // Collapse accordions on tab change
+            if (selectedLanguage !== selectedLang) {
+                setSelectedLanguage(selectedLang);
+                setPage(1);
+                setExpanded(null);
             }
         }
-    }, [tabValue, isLanguagesLoading, languages, selectedLanguage]); // Add selectedLanguage dependency
+    }, [tabValue, isLanguagesLoading, languages, selectedLanguage]);
 
+    // --- Handlers ---
     const handleAccordionChange = (word_id) => (_, isExpanded) => {
         setExpanded(isExpanded ? word_id : null);
-        // Reset forms if collapsing or expanding a *different* item
         if (!isExpanded || (isExpanded && expanded !== word_id)) {
-             cancelEditing();
-             cancelNewSentence();
+            cancelEditing();
+            cancelNewSentence();
         }
     };
 
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue); // State update will trigger useEffect above
-    };
-
-    const handleCloseSnackbar = () => {
-        setSnackbar(prev => ({ ...prev, open: false })); // Prevent unnecessary re-renders
-    };
-
-    const startEditing = (word_id, sentenceId, text) => {
-        cancelNewSentence(); // Ensure new sentence form is closed
-        setEditing({ word_id, sentenceId, text });
-    };
-
-    const cancelEditing = () => {
-        setEditing({ word_id: null, sentenceId: null, text: '' });
-    };
-
+    const handleTabChange = (_, newValue) => setTabValue(newValue);
+    const handleCloseSnackbar = () => setSnackbar(prev => ({ ...prev, open: false }));
+    const startEditing = (word_id, sentenceId, text) => { cancelNewSentence(); setEditing({ word_id, sentenceId, text }); };
+    const cancelEditing = () => setEditing({ word_id: null, sentenceId: null, text: '' });
     const saveEditing = () => {
-         if (!editing.text?.trim()) {
-             setSnackbar({ open: true, message: 'Sentence cannot be empty', severity: 'warning' });
-             return;
-         }
-        // Call mutation - onSuccess handles UI update via invalidation
-        updateSentenceMutation.mutate({
-             sentenceId: editing.sentenceId,
-             text: editing.text.trim()
-         });
+        if (!editing.text?.trim()) {
+            setSnackbar({ open: true, message: 'Sentence cannot be empty', severity: 'warning' }); return;
+        }
+        updateSentenceMutation.mutate({ sentenceId: editing.sentenceId, text: editing.text.trim() });
     };
-
-    const handleDeleteSentence = (sentenceId) => {
-        // Call mutation - onSuccess handles UI update via invalidation
-        deleteSentenceMutation.mutate(sentenceId);
-    };
-
-    const startNewSentence = (word_id) => {
-        cancelEditing(); // Ensure edit form is closed
-        setNewSentence({ ...initialNewSentenceState, word_id: word_id }); // Reset with word_id
-    };
-
+    const handleDeleteSentence = (sentenceId) => deleteSentenceMutation.mutate(sentenceId);
+    const startNewSentence = (word_id) => { cancelEditing(); setNewSentence({ ...initialNewSentenceState, word_id: word_id }); };
+    const cancelNewSentence = () => { setNewSentence(initialNewSentenceState); setIsAIGenerating(false); };
     const saveNewSentence = () => {
         if (!newSentence.text?.trim()) {
-             setSnackbar({ open: true, message: 'Sentence cannot be empty', severity: 'warning' });
-             return;
-         }
-        // Call mutation with the full newSentence object state
-        // Ensure text is trimmed before sending
-        createSentenceMutation.mutate({
-            ...newSentence,
-            text: newSentence.text.trim()
+            setSnackbar({ open: true, message: 'Sentence cannot be empty', severity: 'warning' }); return;
+        }
+        createSentenceMutation.mutate({ ...newSentence, text: newSentence.text.trim() });
+    };
+
+    const handleAICompletion = (aiResponse) => {
+        if (!aiResponse?.content) {
+            setSnackbar({ open: true, message: 'AI failed to generate content.', severity: 'warning' }); return;
+        }
+        setNewSentence(prev => ({
+            ...prev,
+            text: aiResponse.content,
+            is_ai_generated: 1,
+            ai_elapsed_time: !isNaN(parseFloat(aiResponse.elapsed_time)) ? parseFloat(aiResponse.elapsed_time) : null,
+            ai_prompt_tokens: aiResponse.usage?.prompt_tokens ?? null,
+            ai_completion_tokens: aiResponse.usage?.completion_tokens ?? null,
+        }));
+    };
+
+    // Renamed: Triggered AFTER AI generates a NEW review successfully
+    const handleNewAIReviewGenerated = (aiResponse, sentenceId) => {
+        // Now trigger the mutation to SAVE this review
+        // The mutation's onSuccess will handle opening the dialog
+        updateSentenceMutation.mutate({
+            sentenceId: sentenceId,
+            ai_review: aiResponse.content // Pass the new review content
         });
     };
 
-    const cancelNewSentence = () => {
-        setNewSentence(initialNewSentenceState); // Reset to initial state
-        setIsAIGenerating(false); // Ensure AI flag is reset
+    // NEW: Triggered when clicking the "View Review" icon for an EXISTING review
+    const handleViewExistingReview = (sentence) => {
+        if (sentence.ai_review) {
+            setViewingReviewContent(sentence.ai_review);
+            setViewingSentenceId(sentence.id);
+            setReviewDialogOpen(true);
+        } else {
+            // Should not happen if icon is only shown when review exists, but good practice
+            setSnackbar({ open: true, message: 'No review available for this sentence.', severity: 'info' });
+        }
     };
 
-
-    // This function updates the newSentence state when AI completes
-    const handleAICompletion = (aiResponse) => {
-        if (!aiResponse?.content) {
-            console.warn("AI response missing content:", aiResponse);
-             setSnackbar({ open: true, message: 'AI failed to generate content.', severity: 'warning' });
-            return;
-        }
-
-        // Update state with AI data
-        setNewSentence(prev => ({
-            ...prev, // Keep existing word_id
-            text: aiResponse.content,
-            is_ai_generated: 1, // Mark as AI generated
-            // Safely parse float, default to null or 0 if invalid/missing
-            ai_elapsed_time: !isNaN(parseFloat(aiResponse.elapsed_time)) ? parseFloat(aiResponse.elapsed_time) : null,
-            ai_prompt_tokens: aiResponse.usage?.prompt_tokens ?? null, // Use nullish coalescing
-            ai_completion_tokens: aiResponse.usage?.completion_tokens ?? null,
-        }));
+    const handlePageChange = (_, value) => setPage(value);
+    const handleCloseReviewDialog = () => {
+        setReviewDialogOpen(false);
+        // Optional: Reset viewing state after closing
+        // setViewingReviewContent('');
+        // setViewingSentenceId(null);
     }
 
-    const handlePageChange = (event, value) => {
-        setPage(value);
-    };
-
-    // Get the words to render directly from the query data
+    // --- Rendering ---
     const wordsToRender = wordsData?.data || [];
 
     const renderWordsAccordions = () => (
@@ -228,15 +231,21 @@ function SentenceEditor() {
                 key={word.id}
                 expanded={expanded === word.id}
                 onChange={handleAccordionChange(word.id)}
-                // Optionally disable interaction while mutations affecting this word occur
-                // disabled={createSentenceMutation.isLoading && createSentenceMutation.variables?.word_id === word.id || ...}
+                // More specific disabling based on mutation target
+                disabled={
+                    (createSentenceMutation.isLoading && createSentenceMutation.variables?.word_id === word.id) ||
+                    (updateSentenceMutation.isLoading && editing.word_id === word.id) ||
+                    (deleteSentenceMutation.isLoading && word.sentences.some(s => s.id === deleteSentenceMutation.variables)) ||
+                    (isSavingReview && word.sentences.some(s => s.id === updateSentenceMutation.variables?.sentenceId)) // Disable accordion if saving review within it
+                }
             >
                 <AccordionSummary expandIcon={<DownOutlined />}>
                     <Typography sx={{ flexGrow: 1, fontWeight: 'bold' }}>{word.word}</Typography>
-                    {/* Optional: Loading indicator for mutations related to this word */}
-                    {(createSentenceMutation.isLoading && createSentenceMutation.variables?.word_id === word.id) && <CircularProgress size={20} sx={{ml: 1}} color="success" />}
-                    {(updateSentenceMutation.isLoading && editing.word_id === word.id) && <CircularProgress size={20} sx={{ml: 1}} color="primary" />}
-                    {(deleteSentenceMutation.isLoading && word.sentences.some(s => s.id === deleteSentenceMutation.variables)) && <CircularProgress size={20} sx={{ml: 1}} color="error" />}
+                    {/* Spinners for relevant mutations */}
+                    {(createSentenceMutation.isLoading && createSentenceMutation.variables?.word_id === word.id) && <CircularProgress size={20} sx={{ ml: 1 }} color="success" />}
+                    {(updateSentenceMutation.isLoading && editing.word_id === word.id && 'text' in updateSentenceMutation.variables) && <CircularProgress size={20} sx={{ ml: 1 }} color="primary" />}
+                    {(deleteSentenceMutation.isLoading && word.sentences.some(s => s.id === deleteSentenceMutation.variables)) && <CircularProgress size={20} sx={{ ml: 1 }} color="error" />}
+                    {(isSavingReview && word.sentences.some(s => s.id === updateSentenceMutation.variables?.sentenceId)) && <CircularProgress size={20} sx={{ ml: 1 }} color="info" />} {/* Spinner for saving review */}
                 </AccordionSummary>
                 <AccordionDetails>
                     <Box sx={{ width: '100%' }}>
@@ -253,45 +262,90 @@ function SentenceEditor() {
                                     // --- Editing Sentence Row ---
                                     <>
                                         <Grid item xs={12} sm={9}>
-                                            <TextField
-                                                fullWidth
-                                                value={editing.text}
-                                                onChange={(e) => setEditing(prev => ({ ...prev, text: e.target.value }))}
-                                                autoFocus
-                                                disabled={updateSentenceMutation.isLoading}
-                                            />
+                                            <TextField fullWidth value={editing.text} onChange={(e) => setEditing(prev => ({ ...prev, text: e.target.value }))} autoFocus disabled={updateSentenceMutation.isLoading} />
                                         </Grid>
-                                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
                                             <IconButton onClick={saveEditing} color="success" disabled={updateSentenceMutation.isLoading || !editing.text?.trim()}>
-                                                {updateSentenceMutation.isLoading ? <CircularProgress size={20} /> : <CheckOutlined />}
+                                                {updateSentenceMutation.isLoading && 'text' in updateSentenceMutation.variables ? <CircularProgress size={20} /> : <CheckOutlined />}
                                             </IconButton>
-                                            <IconButton onClick={cancelEditing} color="error" disabled={updateSentenceMutation.isLoading}>
-                                                <CloseOutlined />
-                                            </IconButton>
+                                            <IconButton onClick={cancelEditing} color="error" disabled={updateSentenceMutation.isLoading}> <CloseOutlined /> </IconButton>
                                         </Grid>
                                     </>
                                 ) : (
                                     // --- Display Sentence Row ---
                                     <>
-                                        <Grid item xs={12} sm={9}>
+                                        <Grid item xs={12} sm={isMobile ? 12 : 8} md={9}> {/* Adjust grid sizing */}
                                             <Typography sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}>{sentence.sentence}</Typography>
                                         </Grid>
-                                        <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                                             {/* Prevent editing/deleting while another mutation is running */}
-                                            <IconButton
-                                                onClick={() => startEditing(word.id, sentence.id, sentence.sentence)}
-                                                color="primary"
-                                                disabled={deleteSentenceMutation.isLoading || updateSentenceMutation.isLoading || createSentenceMutation.isLoading}
-                                            >
-                                                <EditOutlined />
-                                            </IconButton>
-                                            <IconButton
-                                                onClick={() => handleDeleteSentence(sentence.id)} // Only need sentenceId
-                                                color="error"
-                                                disabled={deleteSentenceMutation.isLoading || updateSentenceMutation.isLoading || createSentenceMutation.isLoading}
-                                            >
-                                                {deleteSentenceMutation.isLoading && deleteSentenceMutation.variables === sentence.id ? <CircularProgress size={20} /> : <DeleteOutlined />}
-                                            </IconButton>
+                                        <Grid item xs={12} sm={isMobile ? 12 : 4} md={3} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+                                            {/* Global disable check */}
+
+                                            {/* Edit Button */}
+                                            <Tooltip title="Edit Sentence">
+                                                <span>
+                                                    <IconButton
+                                                        onClick={() => startEditing(word.id, sentence.id, sentence.sentence)}
+                                                        color="primary"
+                                                        disabled={
+                                                            isSavingReview ||
+                                                            deleteSentenceMutation.isLoading ||
+                                                            updateSentenceMutation.isLoading ||
+                                                            createSentenceMutation.isLoading
+                                                        }
+                                                    >
+                                                        <EditOutlined />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                            {/* Show View Review Icon if review exists */}
+                                            {sentence.ai_review && (
+                                                <Tooltip title="View Existing AI Review">
+                                                    {/* Wrap in span if potentially disabled */}
+                                                    <span>
+                                                        <IconButton
+                                                            onClick={() => handleViewExistingReview(sentence)}
+                                                            color="secondary"
+                                                            disabled={
+                                                                isSavingReview ||
+                                                                deleteSentenceMutation.isLoading ||
+                                                                updateSentenceMutation.isLoading ||
+                                                                createSentenceMutation.isLoading
+                                                            }
+                                                        >
+                                                            <Eye />
+                                                        </IconButton>
+                                                    </span>
+                                                </Tooltip>
+                                            )}
+                                            {/* AI Review Button (always generates NEW review) */}
+                                            <AISentenceReviewButton
+                                                word={word}
+                                                sentence={sentence.sentence}
+                                                sentenceId={sentence.id}
+                                                // Disable if any conflicting mutation is running OR if saving review for THIS sentence
+                                                disabled={isSavingReview || deleteSentenceMutation.isLoading || updateSentenceMutation.isLoading || createSentenceMutation.isLoading}
+                                                onReviewSuccess={handleNewAIReviewGenerated} // Pass the correct handler
+                                                tooltipTitle={sentence.ai_review ? "Generate New AI Review" : "Review with AI"} // Dynamic tooltip
+                                                color="info"
+                                                icon={MagicWand}
+                                            />
+                                            {/* Delete Button */}
+                                            <Tooltip title="Delete Sentence">
+                                                <span>
+                                                    <IconButton
+                                                        onClick={() => handleDeleteSentence(sentence.id)}
+                                                        color="error"
+                                                        disabled={
+                                                            deleteSentenceMutation.isLoading ||
+                                                            updateSentenceMutation.isLoading ||
+                                                            createSentenceMutation.isLoading ||
+                                                            (isSavingReview && updateSentenceMutation.variables?.sentenceId === sentence.id)
+                                                        }
+                                                    >
+                                                        {deleteSentenceMutation.isLoading && deleteSentenceMutation.variables === sentence.id ? <CircularProgress size={20} /> : <DeleteOutlined fontSize="small" />}
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
                                         </Grid>
                                     </>
                                 )}
@@ -302,68 +356,17 @@ function SentenceEditor() {
                         {newSentence.word_id === word.id ? (
                             <Grid container alignItems="center" spacing={1} sx={{ mt: 2, borderTop: '1px solid', borderColor: 'divider', pt: 2 }}>
                                 <Grid item xs={12} sm={9}>
-                                    <TextField
-                                        fullWidth
-                                        value={newSentence.text}
-                                        // Reset AI fields if user manually types
-                                        onChange={(e) => setNewSentence(prev => ({
-                                            ...initialNewSentenceState,
-                                            word_id: prev.word_id,
-                                            text: e.target.value
-                                        }))}
-                                        placeholder="Enter new sentence or use AI"
-                                        disabled={isAIGenerating || createSentenceMutation.isLoading}
-                                        autoFocus
-                                        multiline
-                                        rows={2}
-                                    />
+                                    <TextField fullWidth value={newSentence.text} onChange={(e) => setNewSentence(prev => ({ ...initialNewSentenceState, word_id: prev.word_id, text: e.target.value }))} placeholder="Enter new sentence or use AI" disabled={isAIGenerating || createSentenceMutation.isLoading} autoFocus multiline rows={2} />
                                 </Grid>
                                 <Grid item xs={12} sm={3} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
-
-                                    <AICompletionButton
-                                        word={word}
-                                        tooltipTitle="Generate sentence with AI"
-                                        disabled={isAIGenerating || createSentenceMutation.isLoading}
-                                        onCompletionStart={() => setIsAIGenerating(true)}
-                                        onCompletionSuccess={handleAICompletion}
-                                        onCompletionEnd={() => setIsAIGenerating(false)}
-                                        color="warning" 
-                                    />
-                                    <Tooltip title="Save New Sentence">
-                                        <span> {/* Span for disabled tooltip */}
-                                            <IconButton
-                                                onClick={saveNewSentence}
-                                                color="success"
-                                                // Disable save if AI running, saving, or text is empty
-                                                disabled={isAIGenerating || createSentenceMutation.isLoading || !newSentence.text?.trim()}
-                                            >
-                                                {createSentenceMutation.isLoading ? <CircularProgress size={20} /> : <CheckOutlined />}
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
-                                    <Tooltip title="Cancel">
-                                        <span> {/* Span for disabled tooltip */}
-                                            <IconButton
-                                                onClick={cancelNewSentence}
-                                                color="error"
-                                                // Only disable cancel if actually saving
-                                                disabled={createSentenceMutation.isLoading}
-                                            >
-                                                <CloseOutlined />
-                                            </IconButton>
-                                        </span>
-                                    </Tooltip>
+                                    <AICompletionButton word={word} tooltipTitle="Generate sentence with AI" disabled={isAIGenerating || createSentenceMutation.isLoading} onCompletionStart={() => setIsAIGenerating(true)} onCompletionSuccess={handleAICompletion} onCompletionEnd={() => setIsAIGenerating(false)} color="warning" />
+                                    <Tooltip title="Save New Sentence"><span><IconButton onClick={saveNewSentence} color="success" disabled={isAIGenerating || createSentenceMutation.isLoading || !newSentence.text?.trim()}>{createSentenceMutation.isLoading ? <CircularProgress size={20} /> : <CheckOutlined />}</IconButton></span></Tooltip>
+                                    <Tooltip title="Cancel"><span><IconButton onClick={cancelNewSentence} color="error" disabled={createSentenceMutation.isLoading}><CloseOutlined /></IconButton></span></Tooltip>
                                 </Grid>
                             </Grid>
                         ) : (
                             // --- Add Sentence Button ---
-                            <Button
-                                variant="outlined"
-                                onClick={() => startNewSentence(word.id)}
-                                sx={{ mt: 2 }}
-                                // Disable adding if any mutation is in progress or AI is generating for this word
-                                disabled={isAIGenerating || createSentenceMutation.isLoading || updateSentenceMutation.isLoading || deleteSentenceMutation.isLoading}
-                            >
+                            <Button variant="outlined" onClick={() => startNewSentence(word.id)} sx={{ mt: 2 }} disabled={isAIGenerating || createSentenceMutation.isLoading || updateSentenceMutation.isLoading || deleteSentenceMutation.isLoading || isSavingReview}>
                                 Add Sentence
                             </Button>
                         )}
@@ -373,83 +376,63 @@ function SentenceEditor() {
         ))
     );
 
-    // --- Main Return ---
-    // Handle loading, error, and empty states for the main query
     const renderContent = () => {
-        if (isLoading && !wordsData) { // Show loader only on initial load
-            return <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>;
-        }
-        if (isError) {
-            console.error("Error loading words query:", wordsError);
-            return <Typography color="error" sx={{ p: 2 }}>Error loading words: {wordsError?.message || 'Unknown error'}</Typography>;
-        }
-        if (!wordsToRender || wordsToRender.length === 0) {
-            // Show message if loading is finished but no words found
-            if (!isLoading) {
-                return <Typography sx={{ p: 2 }}>No words found for the selected language.</Typography>;
-            }
-            // Otherwise, might still be loading background/paginated data, show nothing or subtle indicator
-            return null;
-        }
-        // Render the accordions if data is available
+        if (isLoading && !wordsData) return <Box display="flex" justifyContent="center" p={3}><CircularProgress /></Box>;
+        if (isError) return <Typography color="error" sx={{ p: 2 }}>Error loading words: {wordsError?.message || 'Unknown error'}</Typography>;
+        if (!isLoading && (!wordsToRender || wordsToRender.length === 0)) return <Typography sx={{ p: 2 }}>No words found for the selected language.</Typography>;
         return renderWordsAccordions();
     };
 
 
+    // --- Main Return ---
     return (
         <>
             <TabContext value={tabValue}>
                 <Grid container alignItems="center" spacing={1} sx={{ mb: 1, borderBottom: 1, borderColor: 'divider' }}>
                     <Grid item xs={12} md={8}>
-                        <TabList
-                            onChange={handleTabChange}
-                            variant="scrollable"
-                            scrollButtons="auto"
-                            aria-label="Language Tabs"
-                        >
+                        <TabList onChange={handleTabChange} variant="scrollable" scrollButtons="auto" aria-label="Language Tabs">
                             <Tab label="All" value="1" />
-                            {isLanguagesLoading ? (
-                                <Tab label={<CircularProgress size={20}/>} disabled />
-                             ) : (
-                                languages?.map((language, index) => (
-                                <Tab key={language.code} label={language.name} value={(index + 2).toString()} />
-                            )))}
+                            {isLanguagesLoading ? <Tab label={<CircularProgress size={20} />} disabled /> : (languages?.map((language, index) => <Tab key={language.code} label={language.name} value={(index + 2).toString()} />))}
                         </TabList>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        {/* Show pagination only if there's data and more than one page */}
-                         {wordsData && wordsData.last_page > 1 && (
+                        {wordsData && wordsData.last_page > 1 && (
                             <Box display='flex' alignItems='center' justifyContent={{ xs: 'center', md: 'flex-end' }} py={1}>
-                                <Pagination
-                                    count={wordsData.last_page}
-                                    page={page}
-                                    onChange={handlePageChange}
-                                    showFirstButton
-                                    showLastButton
-                                    color="primary" // Theme color
-                                />
+                                <Pagination count={wordsData.last_page} page={page} onChange={handlePageChange} showFirstButton showLastButton color="primary" />
                             </Box>
-                         )}
+                        )}
                     </Grid>
                 </Grid>
 
-                {/* Render TabPanel Content */}
-                <TabPanel value={tabValue} sx={{ px: { xs: 0.5, sm: 1 }, py: 1 }}> {/* Responsive padding */}
+                <TabPanel value={tabValue} sx={{ px: { xs: 0.5, sm: 1 }, py: 1 }}>
                     {renderContent()}
                 </TabPanel>
-                {/* No need to loop TabPanels - content is dynamic based on tabValue/selectedLanguage */}
-
             </TabContext>
 
-            {/* Removed redundant bottom pagination */}
+            {/* --- AI Review Dialog --- */}
+            <Dialog
+                open={reviewDialogOpen}
+                onClose={handleCloseReviewDialog} // Use specific close handler
+                maxWidth="md" // Allow more width for review content
+                fullWidth
+            >
+                {/* Optionally show which sentence is being reviewed */}
+                <DialogTitle>🔍AI Review📬</DialogTitle>
+                <DialogContent dividers> {/* Add dividers for better separation */}
+                    {/* Check if content exists before rendering Markdown */}
+                    {viewingReviewContent ? (
+                        <Markdown remarkPlugins={[remarkGfm]}>{viewingReviewContent}</Markdown>
+                    ) : (
+                        <Typography>No review content available.</Typography>
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseReviewDialog} startIcon={<XCircle />}>Close</Button>
+                    {/* Removed Review Again Button - Trigger review from the accordion */}
+                </DialogActions>
+            </Dialog>
 
-            <Toast
-                open={snackbar.open}
-                message={snackbar.message}
-                severity={snackbar.severity}
-                onClose={handleCloseSnackbar}
-                autoHideDuration={6000} // Standard duration
-            />
+            <Toast open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={handleCloseSnackbar} autoHideDuration={4000} />
         </>
     );
 }
