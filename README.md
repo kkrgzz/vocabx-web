@@ -12,7 +12,7 @@ This application is based on the [Mantis Free React Material UI Dashboard Templa
 
 ## To-Do & Roadmap
 - [x] Store the user's mother tongue and target language for better practice.
-- [ ] Create a user-owned page that allows the user to modify their own information.
+- [x] Create a user-owned page that allows the user to modify their own information.
 - [x] Categorize words by languages and filter them.
 - [x] Export and import word lists.
 - [ ] Improve sentence practice system.
@@ -21,7 +21,7 @@ This application is based on the [Mantis Free React Material UI Dashboard Templa
 - [ ] Better UI/UX design and animations.
 - [ ] Word practice page.
 - [x] Add user profile settings.
-- [ ] Sentence check and advice system with AI.
+- [x] Sentence check and advice system with AI.
 - [ ] User progress tracking and analytics.
 - [ ] Dark mode and theme customization.
 
