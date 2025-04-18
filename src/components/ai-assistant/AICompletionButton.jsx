@@ -1,10 +1,11 @@
 // AICompletionButton.jsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import useAuth from 'hooks/useAuth';
 import { AIClientWrapper } from 'utils/ai';
 import { CircularProgress, IconButton, Tooltip } from '@mui/material';
 import { Brain } from '@phosphor-icons/react';
+import apiKeyManager from 'utils/api-key-manager';
 
 function AICompletionButton({
     word,
@@ -19,11 +20,30 @@ function AICompletionButton({
 }) {
     const [isGenerating, setIsGenerating] = useState(false);
     const { user } = useAuth();
-    
+
     // Only initialize AI Client if the feature is enabled and we have the necessary info
-    const aiClient = user?.profile?.is_ai_assistant_enabled && user?.profile?.api_key
-        ? new AIClientWrapper(user.profile.api_key, user.profile.preferred_model_id)
-        : null;
+    const aiClient = useMemo(() => {
+        // Check if AI is enabled and we have the necessary encryption components
+        if (user?.profile?.is_ai_assistant_enabled &&
+            user?.profile?.api_key &&
+            user?.profile?.api_salt &&
+            user?.profile?.api_iv) {
+
+            const encryptedBundle = {
+                ciphertext: user.profile.api_key,
+                salt: user.profile.api_salt,
+                iv: user.profile.api_iv
+            };
+
+            // Decrypt the API key
+            const decryptedKey = apiKeyManager.decrypt(encryptedBundle);
+
+            // Initialize with decrypted key
+            return new AIClientWrapper(decryptedKey, user.profile.preferred_model_id);
+        }
+
+        return null;
+    }, [user?.profile?.api_key, user?.profile?.api_salt, user?.profile?.api_iv, user?.profile?.preferred_model_id, user?.profile?.is_ai_assistant_enabled]);
 
     // Use provided prompt or generate the default one
     const generationPrompt = prompt || (word
@@ -44,9 +64,9 @@ function AICompletionButton({
                 //console.log('AI Completion Succeeded:', response.content);
                 onCompletionSuccess?.(response); // Pass the result back to the parent
             } else {
-                 console.error('AI Completion failed or returned empty content.');
-                 // Optionally add an onError callback prop if needed
-                 // onError?.(new Error('AI Completion failed or returned empty content.'));
+                console.error('AI Completion failed or returned empty content.');
+                // Optionally add an onError callback prop if needed
+                // onError?.(new Error('AI Completion failed or returned empty content.'));
             }
 
         } catch (error) {
@@ -89,7 +109,7 @@ function AICompletionButton({
             <span>
                 {buttonElement}
             </span>
-          </Tooltip>
+        </Tooltip>
         : buttonElement;
 }
 

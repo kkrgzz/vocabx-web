@@ -1,20 +1,59 @@
 import OpenAI from 'openai';
+import EncryptionHelper from './encryption-helper';
 
 export class AIClientWrapper {
-    constructor(apiKey, preferredModelId) {
+    constructor(apiKeyData, preferredModelId) {
         this.preferredModelId = preferredModelId;
-        // Ensure API key is provided before creating the client
-        if (!apiKey) {
-            console.error("AI Client Wrapper initialized without API Key!");
-            // Handle this case appropriately, maybe throw an error or set client to null
-            this.client = null;
+        this.client = null;
+
+        // Initialize encryption helper
+        this.encryptionHelper = new EncryptionHelper({ iterations: 10000 });
+
+        // Application secret
+        this.encryptionSecret = import.meta.env.VITE_ENCRYPTION_SECRET || 'default-app-secret';
+
+        // Set up the client with decrypted API key
+        this.setupClient(apiKeyData);
+    }
+
+    setupClient(apiKeyData) {
+        // Case 1: Direct API key provided (string format)
+        if (typeof apiKeyData === 'string' && apiKeyData) {
+            this.initializeClient(apiKeyData);
             return;
         }
+
+        // Case 2: Encrypted API key provided (object format)
+        if (apiKeyData && typeof apiKeyData === 'object' &&
+            apiKeyData.ciphertext && apiKeyData.salt && apiKeyData.iv) {
+
+            try {
+                const decryptedKey = this.encryptionHelper.decrypt(apiKeyData, this.encryptionSecret);
+                if (decryptedKey) {
+                    this.initializeClient(decryptedKey);
+                    return;
+                }
+            } catch (error) {
+                console.error("Failed to decrypt API key:", error);
+            }
+        }
+
+        // Case 3: No valid API key provided
+        console.error("AI Client Wrapper initialized without valid API Key!");
+    }
+
+    initializeClient(apiKey) {
+        if (!apiKey) return;
+
         this.client = new OpenAI({
             baseURL: 'https://openrouter.ai/api/v1',
             apiKey,
             dangerouslyAllowBrowser: true, // Be very cautious with this in production
         });
+    }
+
+    isReady() {
+        return this.client !== null;
     }
 
     async getCompletion(message) {
@@ -23,7 +62,7 @@ export class AIClientWrapper {
             console.error("AI Client not available (missing API key?).");
             return null; // Return null to indicate failure
         }
-
+        console.log(this.client);
         const startTime = performance.now();
         let completion;
 

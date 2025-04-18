@@ -68,6 +68,19 @@ I suggest you to use Yarn instead of npn package manager.
    npm install
    ```
 
+### Generate Application Secret
+You should generate application secret to encrypt and decrypt the user secrets. The application include a default secret but it is not safe to use. You can generate a new application secret using OpenSSL:
+```bash
+openssl rand -base64 24
+```
+Or you can generate the key wherever you want.
+Change the `.env` file as follows:
+```.env
+VITE_ENCRYPTION_SECRET = Macha3GOyQvkj4IXZVUDxt/xGMlAodfc
+...
+```
+Change the given secret with yours.
+
 ### Running the Application
 
 1. Start the development server:

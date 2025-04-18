@@ -1,10 +1,11 @@
 // AISentenceReviewButton.jsx
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import useAuth from 'hooks/useAuth';
 import { AIClientWrapper } from 'utils/ai';
 import { CircularProgress, IconButton, Tooltip } from '@mui/material';
 import { Eyeglasses } from '@phosphor-icons/react'; // Or choose another relevant icon like Sparkle, RateReviewOutlined etc.
+import apiKeyManager from 'utils/api-key-manager';
 
 function AISentenceReviewButton({
     word,
@@ -24,9 +25,29 @@ function AISentenceReviewButton({
     const { user } = useAuth();
 
     // Only initialize AI Client if the feature is enabled and we have the necessary info
-    const aiClient = user?.profile?.is_ai_assistant_enabled && user?.profile?.api_key
-        ? new AIClientWrapper(user.profile.api_key, user.profile.preferred_model_id)
-        : null;
+    const aiClient = useMemo(() => {
+        // Check if AI is enabled and we have the necessary encryption components
+        if (user?.profile?.is_ai_assistant_enabled &&
+            user?.profile?.api_key &&
+            user?.profile?.api_salt &&
+            user?.profile?.api_iv) {
+
+            const encryptedBundle = {
+                ciphertext: user.profile.api_key,
+                salt: user.profile.api_salt,
+                iv: user.profile.api_iv
+            };
+
+            // Decrypt the API key
+            const decryptedKey = apiKeyManager.decrypt(encryptedBundle);
+
+            // Initialize with decrypted key
+            return new AIClientWrapper(decryptedKey, user.profile.preferred_model_id);
+        }
+
+        return null;
+    }, [user?.profile?.api_key, user?.profile?.api_salt, user?.profile?.api_iv, user?.profile?.preferred_model_id, user?.profile?.is_ai_assistant_enabled]);
+
 
     // --- Improved Prompt for Sentence Review ---
     const defaultReviewPrompt = (word && sentence)
