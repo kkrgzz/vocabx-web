@@ -240,7 +240,7 @@ function SentenceEditor() {
                 }
             >
                 <AccordionSummary expandIcon={<DownOutlined />}>
-                    <Typography sx={{ flexGrow: 1, fontWeight: 'bold' }}>{word.word}</Typography>
+                    <Typography sx={{ flexGrow: 1, fontWeight: 'bold' }}>{word.word} - ({word?.sentences?.length || 0})</Typography>
                     {/* Spinners for relevant mutations */}
                     {(createSentenceMutation.isLoading && createSentenceMutation.variables?.word_id === word.id) && <CircularProgress size={20} sx={{ ml: 1 }} color="success" />}
                     {(updateSentenceMutation.isLoading && editing.word_id === word.id && 'text' in updateSentenceMutation.variables) && <CircularProgress size={20} sx={{ ml: 1 }} color="primary" />}
