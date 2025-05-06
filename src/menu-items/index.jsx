@@ -16,7 +16,8 @@ import others from './others';
 
 const menuItems = {
   //items: [dashboard, pages, vocabulary, utilities, support]
-  items: [home, language, tools, others, quick_menu, dashboard, vocabulary, sentence, settings]
+  //items: [home, language, tools, others, quick_menu, dashboard, vocabulary, sentence, settings]
+  items: [home, language, tools, others]
 };
 
 export default menuItems;
