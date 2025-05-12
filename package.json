@@ -1,12 +1,12 @@
 {
-  "name": "mantis-free-react-admin-template",
+  "name": "vocabx",
   "version": "0.6.1",
   "private": true,
-  "homepage": "https://mantisdashboard.io/free",
+  "homepage": "https://vocabx.org",
   "author": {
-    "name": "CodedThemes",
-    "email": "codedthemes@gmail.com",
-    "url": "https://codedthemes.com/"
+    "name": "Kemal Karagoz",
+    "email": "me@kkaragoz.com",
+    "url": "https://kkaragoz.com/"
   },
   "scripts": {
     "start": "vite",
