@@ -16,7 +16,7 @@ const config = {
 export default config;
 
 
-export const APP_DEFAULT_PATH = '/sample-page';
+export const APP_DEFAULT_PATH = '/home/default';
 export const drawerWidth = 260;
 
 export const twitterColor = '#1DA1F2';
