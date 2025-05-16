@@ -23,7 +23,7 @@ function Attributions() {
                 <Chip label="Template" color='warning' />
             </Divider>
             <Stack direction='column'>
-                <a href="https://mui.com/store/items/mantis-react-admin-dashboard-template/" title="Mantis - React Material UI Dashboard Template">Mantis - React Material UI Dashboard Template |Thanks for your excellent template.</a>
+                <a href="https://mui.com/store/items/mantis-free-react-admin-dashboard-template/" title="Mantis Free - React Material UI Dashboard Template">Mantis Free - React Material UI Dashboard Template |Thanks for your excellent template.</a>
             </Stack>
 
             {/* Illustrations */}
