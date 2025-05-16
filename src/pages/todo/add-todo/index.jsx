@@ -52,7 +52,7 @@ function AddToDo({ canExpandable = true, initiallExpanded = true }) {
   };
 
   const handleTodoDescriptionChange = (event) => {
-    if (event.target.value.length <= 255) {
+    if (event.target.value.length <= maxTodoDescriptionLength) {
       setTodoDescription(event.target.value);
     }
   };
