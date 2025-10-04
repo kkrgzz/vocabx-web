@@ -375,6 +375,7 @@ function WordList({
                 showLanguage={true}
                 showTranslations={true}
                 showSentences={true}
+                showTatoebaSentences={true}
                 showCloseIcon={true}
                 handleCloseDetailsDialog={handleCloseDetailsDialog}
               />
